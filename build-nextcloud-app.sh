@@ -37,7 +37,7 @@ test -d "${app_name}" || mkdir -p "${app_name}"
 
 cp -ra ../nextcloud-app/* ${app_name}/
 cp -ra ../img ${app_name}/
-cp -a ../proxy.php ../LICENSE ${app_name}/
+cp -a ../proxy.php ../LICENSE ../NOTICES ${app_name}/
 
 # get the appimage
 test -d "${app_name}/collabora" || mkdir -p "${app_name}/collabora"
