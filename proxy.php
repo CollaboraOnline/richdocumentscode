@@ -1,0 +1,245 @@
+<?php
+/*
+ * Copyright (C) 2020 Collabora Productivity, Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// test with:
+// http://localhost/richproxy/proxy.php?req=/loleaflet/dist/loleaflet.html?file_path=file:///opt/libreoffice/online/test/data/hello-world.odt
+
+function debug_log($msg)
+{
+    // Disabled for production; enable for debugging
+    //error_log($msg);
+}
+
+function errorExit($msg)
+{
+    print "<html><body>\n";
+    print "<h1>Socket proxy error</h1>\n";
+    print "<p>Error: " . $msg . "</p>\n";
+    print "</body></html>\n";
+    debug_log("Error exit: $msg");
+    http_response_code(400);
+    exit();
+}
+
+debug_log('Proxy v1');
+
+// Let the webserver time us out in its own good time.
+set_time_limit(0);
+
+// Where the appimage is installed
+$launchCmd = __DIR__ . '/collabora/Collabora_Online.AppImage';
+
+// parse and emit headers using 'header' ...
+function parseLastHeader(&$chunk)
+{
+    $headers = explode("\r\n", $chunk);
+    debug_log("Headers: $chunk");
+    $chop = 0;
+    $endOfHeaders = false;
+    foreach ($headers as $h)
+    {
+	debug_log("send: $h");
+	$chop += strlen($h) + 2;
+	if ($h === '')
+	{
+	    $endOfHeaders = true;
+	    break;
+	}
+	header($h);
+    }
+    // keep looking for the next header.
+    $chunk = substr($chunk, $chop);
+    return $endOfHeaders;
+}
+
+function startsWith($string, $with) {
+    return (substr($string, 0, strlen($with)) === $with);
+}
+
+// avoid unwanted escaping of req= parameter
+$request = $_SERVER['QUERY_STRING'];
+// only asking for status?
+$statusOnly = false;
+
+// handle parameters
+if (startsWith($request, 'status')) {
+    $request = '';
+    $statusOnly = true;
+} else if (startsWith($request, 'req=')) {
+    $request = substr($request, strlen('req='));
+    if (substr($request, 0, 1) != '/')
+       errorExit("First ?req= param should be an absolute path: '" . $request . "'");
+} else {
+   errorExit("The param should be 'status' or 'req=...', but is: '" . $request . "'");
+}
+
+debug_log("get URI " . $request);
+
+if ($request == '' && !$statusOnly)
+    errorExit("Missing, required req= parameter");
+
+// If we can't get a socket open in 3 seconds when that is backed by
+// a dedicated thread, then we have a server missing in action.
+$local = fsockopen("localhost", 9980, $errno, $errstr, 3);
+
+// Return the status and exit if it is a ?status request
+if ($statusOnly) {
+    header('Content-type: application/json');
+    if (!$local || $errno == 111) {
+       print '{"status":"starting"}';
+    } else {
+        $response = file_get_contents("http://localhost:9980/hosting/capabilities", 0, stream_context_create(["http"=>["timeout"=>1]]));
+        if ($response)
+            print '{"status":"OK"}';
+        else
+            print '{"status":"starting"}';
+       fclose($local);
+    }
+
+    http_response_code(200);
+    exit();
+}
+// URL into this server of the proxy script.
+if (isset($_SERVER['HTTPS'])) {
+    $proxyURL = "https://";
+ } else {
+    $proxyURL = "http://";
+ }
+
+// Start the appimage if necessary
+if (!$local)
+{
+   // FIXME: avoid multiple launch attempts...
+   debug_log("Launch the loolwsd server.");
+
+   // TODO use also pidof or something to check that it is already running?
+   exec("$launchCmd >/dev/null & disown");
+}
+
+
+if (!$local)
+{
+   while (true) {
+      $local = fsockopen("localhost", 9980, $errno, $errstr, 15);
+      if ($errno == 111) {
+        debug_log("Can't yet connect to socket so sleep");
+        usleep(50 * 1000); // 50ms.
+      } else {
+        debug_log("connected?");
+        break;
+      }
+   }
+}
+
+if (!$local) {
+   errorExit("Timed out opening local socket: $errno - $errstr");
+}
+
+// Fetch our headers for later
+$headers = apache_request_headers();
+
+$proxyURL .= $_SERVER['SERVER_NAME'] . $_SERVER['SCRIPT_NAME'] . '?req=';
+debug_log("ProxyPrefix: '$proxyURL'");
+
+$realRequest = $_SERVER['REQUEST_METHOD'] . " " . $request . " " . $_SERVER['SERVER_PROTOCOL'];
+debug_log("Onward request is: '$realRequest'");
+
+$body = file_get_contents('php://input');
+debug_log("request content: '$body'");
+
+// Oh dear - PHP's rfc1867 handling doesn't give any php://input to work with in this case.
+$multiBody = '';
+if ($body == '' && count($_FILES) > 0) {
+   debug_log("Oh dear - PHP's rfc1867 handling doesn't give any php://input to work with");
+   $type = $headers['Content-Type'];
+   $boundary = trim(explode('boundary=', $type)[1]);
+   foreach ($_REQUEST as $key=>$value) {
+      if ($key == 'req') {
+         continue;
+      }
+      $multiBody .= "--" . $boundary . "\r\n";
+      $multiBody .= "Content-Disposition: form-data; name=\"$key\"\r\n\r\n";
+      $multiBody .= "$value\r\n";
+   }
+   foreach ($_FILES as $file) {
+      $multiBody .= "--" . $boundary . "\r\n";
+      $multiBody .= "Content-Disposition: form-data; name=\"file\"; filename=\"" . $file['name'] . "\"\r\n";
+      $multiBody .= "Content-Type: " . $file['type'] . "\r\n\r\n";
+      if ($file['tmp_name'] == '') {
+          errorExit("File " . $file['name'] . " is larger than maximum up-load file-size");
+      }
+      $multiBody .= file_get_contents($file['tmp_name']) . "\r\n";
+   }
+   $multiBody .= "--" . $boundary . "--\r\n";
+   $body = $multiBody;
+
+   debug_log("$body");
+}
+
+fwrite($local, $realRequest . "\r\n");
+// Send the headers on ...
+foreach ($headers as $header => $value) {
+    debug_log("$header: $value\n");
+    if ($multiBody != '' && $header == 'Content-Length')
+    {
+        debug_log("Substitute Content-Length of " . $value . " with " . strlen($body));
+	$value = strlen($body);
+    }
+
+    fwrite($local, "$header: $value\r\n");
+}
+fwrite($local, "ProxyPrefix: " . $proxyURL . "\r\n");
+fwrite($local, "\r\n");
+fwrite($local, $body);
+
+debug_log("waiting for response");
+
+$rest = '';
+$parsingHeaders = true;
+do {
+   $chunk = fread($local, 65536);
+   if($chunk === false) {
+        $error = socket_last_error($local);
+	echo "ERROR ! $error\n";
+        debug_log("error on chunk: $error");
+	break;
+    } elseif($chunk == '') {
+        debug_log("empty chunk last data");
+	if ($parsingHeaders)
+		errorExit("No content in reply from loolwsd. Is SSL enabled in error ?");
+        break;
+    } elseif ($parsingHeaders) {
+        $rest .= $chunk;
+        debug_log("build headers to: $rest\n");
+        if (parseLastHeader($rest)) {
+	   $parsingHeaders = false;
+
+	   $extOut = fopen("php://output", "w") or errorExit("fundamental error opening PHP output");
+	   fwrite($extOut, $rest);
+	   $rest = '';
+	   debug_log("passed last headers");
+	}
+    } else {
+      	fwrite($extOut, $chunk);
+        debug_log("proxy : " . strlen($chunk) . " bytes \n");
+    }
+} while(true);
+
+debug_log("closing local socket");
+fclose($local);
+
+?>

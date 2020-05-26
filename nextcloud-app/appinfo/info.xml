@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<info xmlns:xsi= "http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
+    <id>richdocumentscode</id>
+    <name>Built-in CODE Server</name>
+    <summary>Built-in Collabora Online Development Edition (CODE) server for local testing and non-production use</summary>
+    <description><![CDATA[Collabora Online is a powerful LibreOffice-based online office suite with collaborative editing, which supports all major documents, spreadsheet and presentation file formats and works together with all modern browsers.
+
+This app is installed and used together with the usual Collabora Online app.]]></description>
+    <version>4.2.300</version>
+    <licence>apache</licence>
+    <author>Collabora Productivity</author>
+    <namespace>RichDocumentsCODE</namespace>
+    <category>office</category>
+    <category>integration</category>
+    <website>https://collaboraoffice.com/</website>
+    <bugs>https://collaboraoffice.com</bugs>
+    <dependencies>
+        <nextcloud min-version="18" max-version="20"/>
+    </dependencies>
+</info>
