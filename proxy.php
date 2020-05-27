@@ -144,22 +144,26 @@ if ($statusOnly) {
     } else {
         $response = file_get_contents("http://localhost:9980/hosting/capabilities", 0, stream_context_create(["http"=>["timeout"=>1]]));
         if ($response) {
-
-            print '{"status":"OK"}';
-
             // Version check.
             $obj = json_decode($response);
             $actVer = $obj->{'productVersionHash'};
             $expVer = '%LOOLWSD_VERSION_HASH%';
-            if ($actVer != $expVer) {
+            if ($actVer != $expVer && $expVer != '%' . 'LOOLWSD_VERSION_HASH' . '%') { // deliberately split so that sed does not touch this during build-time
                 // Old/unexpected server version; restart.
                 error_log("Old server found, restarting. Expected hash $expVer but found $actVer.");
                 stopLoolwsd();
-                while (isLoolwsdRunning())
+                // wait 10 seconds max
+                for ($i = 0; isLoolwsdRunning() && ($i < 10); $i++)
                     sleep(1);
 
-                startLoolwsd();
+                // somebody else might have restarted it in the meantime
+                if (!isLoolwsdRunning())
+                    startLoolwsd();
+
+                print '{"status":"restarting"}';
             }
+            else
+                print '{"status":"OK"}';
         }
         else
             print '{"status":"starting"}';
@@ -181,11 +185,7 @@ if (!$local)
 {
     if (!isLoolwsdRunning())
         startLoolwsd();
-}
 
-
-if (!$local)
-{
     while (true) {
         $local = fsockopen("localhost", 9980, $errno, $errstr, 15);
         if ($errno == 111) {
