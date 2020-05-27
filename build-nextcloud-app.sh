@@ -37,17 +37,17 @@ test -d "${app_name}" || mkdir -p "${app_name}"
 
 cp -ra ../nextcloud-app/* ${app_name}/
 cp -ra ../img ${app_name}/
-cp -a ../proxy.php ../LICENSE ../NOTICES ${app_name}/
+cp -a ../LICENSE ../NOTICES ${app_name}/
 
 # get the appimage
 test -d "${app_name}/collabora" || mkdir -p "${app_name}/collabora"
 test -f "${app_name}/collabora/Collabora_Online.AppImage" || curl "$APPIMAGE_URL" -o "${app_name}/collabora/Collabora_Online.AppImage"
 chmod a+x "${app_name}/collabora/Collabora_Online.AppImage"
 
-# Get the version hash from loolwsd and set it in proxy.php
+# Create proxy.php and get the version hash from loolwsd into it
 HASH=`./${app_name}/collabora/Collabora_Online.AppImage --version-hash`
 echo "HASH: $HASH"
-sed -i "s/%LOOLWSD_VERSION_HASH%/$HASH/g" ${app_name}/proxy.php
+sed "s/%LOOLWSD_VERSION_HASH%/$HASH/g" ../proxy.php > ${app_name}/proxy.php
 
 echo "Signing…"
 $occ integrity:sign-app --privateKey=${cert_dir}/${app_name}.key --certificate=${cert_dir}/${app_name}.crt --path=$(pwd)/${app_name}
