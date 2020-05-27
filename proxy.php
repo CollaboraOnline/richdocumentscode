@@ -65,6 +65,7 @@ function startLoolwsd()
 {
     global $launchCmd;
     debug_log("Launch the loolwsd server: $launchCmd");
+    chmod("$launchCmd", 0744);
     exec("$launchCmd >/dev/null & disown", $output, $return);
     if ($return)
     {
