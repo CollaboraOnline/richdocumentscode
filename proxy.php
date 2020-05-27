@@ -84,6 +84,28 @@ function stopLoolwsd()
     }
 }
 
+// Check that the setup is suitable for running the loolwsd.
+// Returns the error ID if we find a problem.
+function checkLoolwsdSetup()
+{
+    global $launchCmd;
+
+    if (!file_exists($launchCmd))
+        return 'appimage_missing';
+    else if (!chmod($launchCmd, 0744))
+        return 'chmod_failed';
+    else if (!is_executable($launchCmd))
+        return 'appimage_not_executable';
+    else if (!is_callable('exec'))
+        return 'exec_disabled';
+    else if (PHP_OS_FAMILY !== 'Linux')
+        return 'not_linux';
+    else if (php_uname('m') !== 'x86_64')
+        return 'not_x86_64';
+
+    return '';
+}
+
 // parse and emit headers using 'header' ...
 function parseLastHeader(&$chunk)
 {
@@ -140,7 +162,13 @@ $local = fsockopen("localhost", 9980, $errno, $errstr, 3);
 // Return the status and exit if it is a ?status request
 if ($statusOnly) {
     header('Content-type: application/json');
-    if (!$local || $errno == 111) {
+    if (!$local) {
+        $err = checkLoolwsdSetup();
+        if (!empty($err))
+            print '{"status":"error","error":"' . $err . '"}';
+        else
+            print '{"status":"starting"}';
+    } else if ($errno == 111) {
         print '{"status":"starting"}';
     } else {
         $response = file_get_contents("http://localhost:9980/hosting/capabilities", 0, stream_context_create(["http"=>["timeout"=>1]]));
