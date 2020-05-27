@@ -43,6 +43,46 @@ set_time_limit(0);
 // Where the appimage is installed
 $launchCmd = __DIR__ . '/collabora/Collabora_Online.AppImage';
 
+function getLoolwsdPid()
+{
+    exec("pidof loolwsd", $output, $return);
+    if ($return == 0 && count($output) > 0)
+    {
+        debug_log("Loolwsd server running with pid: " . implode(', ', $output));
+        return $output;
+    }
+
+    debug_log("Loolwsd server is not running.");
+    return 0;
+}
+
+function isLoolwsdRunning()
+{
+    return !empty(getLoolwsdPid());
+}
+
+function startLoolwsd()
+{
+    global $launchCmd;
+    debug_log("Launch the loolwsd server: $launchCmd");
+    exec("$launchCmd >/dev/null & disown", $output, $return);
+    if ($return)
+    {
+        debug_log("Failed to launch server at $launchCmd.");
+        // errorExit("Server unavialble."); // disown: not found
+    }
+}
+
+function stopLoolwsd()
+{
+    $pid = getLoolwsdPid();
+    if (!empty($pid))
+    {
+        debug_log("Stopping the loolwsd server with pid: " . implode(', ', $pid));
+        exec("kill -s TERM " . implode(' ', $pid));
+    }
+}
+
 // parse and emit headers using 'header' ...
 function parseLastHeader(&$chunk)
 {
@@ -52,14 +92,14 @@ function parseLastHeader(&$chunk)
     $endOfHeaders = false;
     foreach ($headers as $h)
     {
-	debug_log("send: $h");
-	$chop += strlen($h) + 2;
-	if ($h === '')
-	{
-	    $endOfHeaders = true;
-	    break;
-	}
-	header($h);
+        debug_log("send: $h");
+        $chop += strlen($h) + 2;
+        if ($h === '')
+        {
+            $endOfHeaders = true;
+            break;
+        }
+        header($h);
     }
     // keep looking for the next header.
     $chunk = substr($chunk, $chop);
@@ -103,11 +143,27 @@ if ($statusOnly) {
        print '{"status":"starting"}';
     } else {
         $response = file_get_contents("http://localhost:9980/hosting/capabilities", 0, stream_context_create(["http"=>["timeout"=>1]]));
-        if ($response)
+        if ($response) {
+
             print '{"status":"OK"}';
+
+            // Version check.
+            $obj = json_decode($response);
+            $actVer = $obj->{'productVersionHash'};
+            $expVer = '%LOOLWSD_VERSION_HASH%';
+            if ($actVer != $expVer) {
+                // Old/unexpected server version; restart.
+                error_log("Old server found, restarting. Expected hash $expVer but found $actVer.");
+                stopLoolwsd();
+                while (isLoolwsdRunning())
+                    sleep(1);
+
+                startLoolwsd();
+            }
+        }
         else
             print '{"status":"starting"}';
-       fclose($local);
+        fclose($local);
     }
 
     http_response_code(200);
@@ -123,11 +179,8 @@ if (isset($_SERVER['HTTPS'])) {
 // Start the appimage if necessary
 if (!$local)
 {
-   // FIXME: avoid multiple launch attempts...
-   debug_log("Launch the loolwsd server.");
-
-   // TODO use also pidof or something to check that it is already running?
-   exec("$launchCmd >/dev/null & disown");
+    if (!isLoolwsdRunning())
+        startLoolwsd();
 }
 
 
@@ -197,7 +250,7 @@ foreach ($headers as $header => $value) {
     if ($multiBody != '' && $header == 'Content-Length')
     {
         debug_log("Substitute Content-Length of " . $value . " with " . strlen($body));
-	$value = strlen($body);
+        $value = strlen($body);
     }
 
     fwrite($local, "$header: $value\r\n");
@@ -214,27 +267,27 @@ do {
    $chunk = fread($local, 65536);
    if($chunk === false) {
         $error = socket_last_error($local);
-	echo "ERROR ! $error\n";
+        echo "ERROR ! $error\n";
         debug_log("error on chunk: $error");
-	break;
+        break;
     } elseif($chunk == '') {
         debug_log("empty chunk last data");
-	if ($parsingHeaders)
-		errorExit("No content in reply from loolwsd. Is SSL enabled in error ?");
+    if ($parsingHeaders)
+        errorExit("No content in reply from loolwsd. Is SSL enabled in error ?");
         break;
     } elseif ($parsingHeaders) {
         $rest .= $chunk;
         debug_log("build headers to: $rest\n");
         if (parseLastHeader($rest)) {
-	   $parsingHeaders = false;
+            $parsingHeaders = false;
 
-	   $extOut = fopen("php://output", "w") or errorExit("fundamental error opening PHP output");
-	   fwrite($extOut, $rest);
-	   $rest = '';
-	   debug_log("passed last headers");
-	}
+            $extOut = fopen("php://output", "w") or errorExit("fundamental error opening PHP output");
+            fwrite($extOut, $rest);
+            $rest = '';
+            debug_log("passed last headers");
+        }
     } else {
-      	fwrite($extOut, $chunk);
+        fwrite($extOut, $chunk);
         debug_log("proxy : " . strlen($chunk) . " bytes \n");
     }
 } while(true);
