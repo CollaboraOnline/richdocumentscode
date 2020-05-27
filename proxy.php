@@ -43,6 +43,46 @@ set_time_limit(0);
 // Where the appimage is installed
 $launchCmd = __DIR__ . '/collabora/Collabora_Online.AppImage';
 
+function getLoolwsdPid()
+{
+    exec("pidof loolwsd", $output, $return);
+    if ($return == 0 && count($output) > 0)
+    {
+        debug_log("Loolwsd server running with pid: " . implode(', ', $output));
+        return $output;
+    }
+
+    debug_log("Loolwsd server is not running.");
+    return 0;
+}
+
+function isLoolwsdRunning()
+{
+    return !empty(getLoolwsdPid());
+}
+
+function startLoolwsd()
+{
+    global $launchCmd;
+    debug_log("Launch the loolwsd server: $launchCmd");
+    exec("$launchCmd >/dev/null & disown", $output, $return);
+    if ($return)
+    {
+        debug_log("Failed to launch server at $launchCmd.");
+        // errorExit("Server unavialble."); // disown: not found
+    }
+}
+
+function stopLoolwsd()
+{
+    $pid = getLoolwsdPid();
+    if (!empty($pid))
+    {
+        debug_log("Stopping the loolwsd server with pid: " . implode(', ', $pid));
+        exec("kill -s TERM " . implode(' ', $pid));
+    }
+}
+
 // parse and emit headers using 'header' ...
 function parseLastHeader(&$chunk)
 {
@@ -103,8 +143,24 @@ if ($statusOnly) {
         print '{"status":"starting"}';
     } else {
         $response = file_get_contents("http://localhost:9980/hosting/capabilities", 0, stream_context_create(["http"=>["timeout"=>1]]));
-        if ($response)
+        if ($response) {
+
             print '{"status":"OK"}';
+
+            // Version check.
+            $obj = json_decode($response);
+            $actVer = $obj->{'productVersionHash'};
+            $expVer = '%LOOLWSD_VERSION_HASH%';
+            if ($actVer != $expVer) {
+                // Old/unexpected server version; restart.
+                error_log("Old server found, restarting. Expected hash $expVer but found $actVer.");
+                stopLoolwsd();
+                while (isLoolwsdRunning())
+                    sleep(1);
+
+                startLoolwsd();
+            }
+        }
         else
             print '{"status":"starting"}';
         fclose($local);
@@ -123,11 +179,8 @@ if (isset($_SERVER['HTTPS'])) {
 // Start the appimage if necessary
 if (!$local)
 {
-    // FIXME: avoid multiple launch attempts...
-    debug_log("Launch the loolwsd server.");
-
-    // TODO use also pidof or something to check that it is already running?
-    exec("$launchCmd >/dev/null & disown");
+    if (!isLoolwsdRunning())
+        startLoolwsd();
 }
 
 
