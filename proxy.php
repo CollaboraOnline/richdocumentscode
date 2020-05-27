@@ -52,14 +52,14 @@ function parseLastHeader(&$chunk)
     $endOfHeaders = false;
     foreach ($headers as $h)
     {
-	debug_log("send: $h");
-	$chop += strlen($h) + 2;
-	if ($h === '')
-	{
-	    $endOfHeaders = true;
-	    break;
-	}
-	header($h);
+        debug_log("send: $h");
+        $chop += strlen($h) + 2;
+        if ($h === '')
+        {
+            $endOfHeaders = true;
+            break;
+        }
+        header($h);
     }
     // keep looking for the next header.
     $chunk = substr($chunk, $chop);
@@ -82,9 +82,9 @@ if (startsWith($request, 'status')) {
 } else if (startsWith($request, 'req=')) {
     $request = substr($request, strlen('req='));
     if (substr($request, 0, 1) != '/')
-       errorExit("First ?req= param should be an absolute path: '" . $request . "'");
+        errorExit("First ?req= param should be an absolute path: '" . $request . "'");
 } else {
-   errorExit("The param should be 'status' or 'req=...', but is: '" . $request . "'");
+    errorExit("The param should be 'status' or 'req=...', but is: '" . $request . "'");
 }
 
 debug_log("get URI " . $request);
@@ -100,14 +100,14 @@ $local = fsockopen("localhost", 9980, $errno, $errstr, 3);
 if ($statusOnly) {
     header('Content-type: application/json');
     if (!$local || $errno == 111) {
-       print '{"status":"starting"}';
+        print '{"status":"starting"}';
     } else {
         $response = file_get_contents("http://localhost:9980/hosting/capabilities", 0, stream_context_create(["http"=>["timeout"=>1]]));
         if ($response)
             print '{"status":"OK"}';
         else
             print '{"status":"starting"}';
-       fclose($local);
+        fclose($local);
     }
 
     http_response_code(200);
@@ -116,37 +116,37 @@ if ($statusOnly) {
 // URL into this server of the proxy script.
 if (isset($_SERVER['HTTPS'])) {
     $proxyURL = "https://";
- } else {
+} else {
     $proxyURL = "http://";
- }
+}
 
 // Start the appimage if necessary
 if (!$local)
 {
-   // FIXME: avoid multiple launch attempts...
-   debug_log("Launch the loolwsd server.");
+    // FIXME: avoid multiple launch attempts...
+    debug_log("Launch the loolwsd server.");
 
-   // TODO use also pidof or something to check that it is already running?
-   exec("$launchCmd >/dev/null & disown");
+    // TODO use also pidof or something to check that it is already running?
+    exec("$launchCmd >/dev/null & disown");
 }
 
 
 if (!$local)
 {
-   while (true) {
-      $local = fsockopen("localhost", 9980, $errno, $errstr, 15);
-      if ($errno == 111) {
-        debug_log("Can't yet connect to socket so sleep");
-        usleep(50 * 1000); // 50ms.
-      } else {
-        debug_log("connected?");
-        break;
-      }
-   }
+    while (true) {
+        $local = fsockopen("localhost", 9980, $errno, $errstr, 15);
+        if ($errno == 111) {
+            debug_log("Can't yet connect to socket so sleep");
+            usleep(50 * 1000); // 50ms.
+        } else {
+            debug_log("connected?");
+            break;
+        }
+    }
 }
 
 if (!$local) {
-   errorExit("Timed out opening local socket: $errno - $errstr");
+    errorExit("Timed out opening local socket: $errno - $errstr");
 }
 
 // Fetch our headers for later
@@ -164,30 +164,30 @@ debug_log("request content: '$body'");
 // Oh dear - PHP's rfc1867 handling doesn't give any php://input to work with in this case.
 $multiBody = '';
 if ($body == '' && count($_FILES) > 0) {
-   debug_log("Oh dear - PHP's rfc1867 handling doesn't give any php://input to work with");
-   $type = $headers['Content-Type'];
-   $boundary = trim(explode('boundary=', $type)[1]);
-   foreach ($_REQUEST as $key=>$value) {
-      if ($key == 'req') {
-         continue;
-      }
-      $multiBody .= "--" . $boundary . "\r\n";
-      $multiBody .= "Content-Disposition: form-data; name=\"$key\"\r\n\r\n";
-      $multiBody .= "$value\r\n";
-   }
-   foreach ($_FILES as $file) {
-      $multiBody .= "--" . $boundary . "\r\n";
-      $multiBody .= "Content-Disposition: form-data; name=\"file\"; filename=\"" . $file['name'] . "\"\r\n";
-      $multiBody .= "Content-Type: " . $file['type'] . "\r\n\r\n";
-      if ($file['tmp_name'] == '') {
-          errorExit("File " . $file['name'] . " is larger than maximum up-load file-size");
-      }
-      $multiBody .= file_get_contents($file['tmp_name']) . "\r\n";
-   }
-   $multiBody .= "--" . $boundary . "--\r\n";
-   $body = $multiBody;
+    debug_log("Oh dear - PHP's rfc1867 handling doesn't give any php://input to work with");
+    $type = $headers['Content-Type'];
+    $boundary = trim(explode('boundary=', $type)[1]);
+    foreach ($_REQUEST as $key=>$value) {
+        if ($key == 'req') {
+            continue;
+        }
+        $multiBody .= "--" . $boundary . "\r\n";
+        $multiBody .= "Content-Disposition: form-data; name=\"$key\"\r\n\r\n";
+        $multiBody .= "$value\r\n";
+    }
+    foreach ($_FILES as $file) {
+        $multiBody .= "--" . $boundary . "\r\n";
+        $multiBody .= "Content-Disposition: form-data; name=\"file\"; filename=\"" . $file['name'] . "\"\r\n";
+        $multiBody .= "Content-Type: " . $file['type'] . "\r\n\r\n";
+        if ($file['tmp_name'] == '') {
+            errorExit("File " . $file['name'] . " is larger than maximum up-load file-size");
+        }
+        $multiBody .= file_get_contents($file['tmp_name']) . "\r\n";
+    }
+    $multiBody .= "--" . $boundary . "--\r\n";
+    $body = $multiBody;
 
-   debug_log("$body");
+    debug_log("$body");
 }
 
 fwrite($local, $realRequest . "\r\n");
@@ -197,7 +197,7 @@ foreach ($headers as $header => $value) {
     if ($multiBody != '' && $header == 'Content-Length')
     {
         debug_log("Substitute Content-Length of " . $value . " with " . strlen($body));
-	$value = strlen($body);
+        $value = strlen($body);
     }
 
     fwrite($local, "$header: $value\r\n");
@@ -211,30 +211,30 @@ debug_log("waiting for response");
 $rest = '';
 $parsingHeaders = true;
 do {
-   $chunk = fread($local, 65536);
-   if($chunk === false) {
+    $chunk = fread($local, 65536);
+    if($chunk === false) {
         $error = socket_last_error($local);
-	echo "ERROR ! $error\n";
+        echo "ERROR ! $error\n";
         debug_log("error on chunk: $error");
-	break;
+        break;
     } elseif($chunk == '') {
         debug_log("empty chunk last data");
-	if ($parsingHeaders)
-		errorExit("No content in reply from loolwsd. Is SSL enabled in error ?");
+        if ($parsingHeaders)
+            errorExit("No content in reply from loolwsd. Is SSL enabled in error ?");
         break;
     } elseif ($parsingHeaders) {
         $rest .= $chunk;
         debug_log("build headers to: $rest\n");
         if (parseLastHeader($rest)) {
-	   $parsingHeaders = false;
+            $parsingHeaders = false;
 
-	   $extOut = fopen("php://output", "w") or errorExit("fundamental error opening PHP output");
-	   fwrite($extOut, $rest);
-	   $rest = '';
-	   debug_log("passed last headers");
-	}
+            $extOut = fopen("php://output", "w") or errorExit("fundamental error opening PHP output");
+            fwrite($extOut, $rest);
+            $rest = '';
+            debug_log("passed last headers");
+        }
     } else {
-      	fwrite($extOut, $chunk);
+        fwrite($extOut, $chunk);
         debug_log("proxy : " . strlen($chunk) . " bytes \n");
     }
 } while(true);
