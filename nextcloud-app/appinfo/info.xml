@@ -11,10 +11,15 @@ This app is installed and used together with the usual Collabora Online app.]]><
     <licence>apache</licence>
     <author>Collabora Productivity</author>
     <namespace>RichDocumentsCODE</namespace>
+    <documentation>
+        <user>https://collaboraoffice.com/</user>
+        <admin>https://github.com/CollaboraOnline/richdocumentscode#richdocumentscode</admin>
+        <developer>https://github.com/CollaboraOnline/richdocumentscode#richdocumentscode</developer>
+    </documentation>
     <category>office</category>
     <category>integration</category>
     <website>https://collaboraoffice.com/</website>
-    <bugs>https://collaboraoffice.com</bugs>
+    <bugs>https://github.com/CollaboraOnline/richdocumentscode/issues</bugs>
     <dependencies>
         <nextcloud min-version="18" max-version="20"/>
     </dependencies>
