@@ -2,7 +2,7 @@
 <info xmlns:xsi= "http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
     <id>richdocumentscode</id>
-    <name>Built-in CODE Server</name>
+    <name>Collabora Online - Built-in CODE Server</name>
     <summary>Built-in Collabora Online Development Edition (CODE) server for local testing and non-production use</summary>
     <description><![CDATA[Collabora Online is a powerful LibreOffice-based online office suite with collaborative editing, which supports all major documents, spreadsheet and presentation file formats and works together with all modern browsers.
 
