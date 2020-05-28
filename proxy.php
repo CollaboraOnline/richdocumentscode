@@ -41,7 +41,7 @@ debug_log('Proxy v1');
 set_time_limit(0);
 
 // Where the appimage is installed
-$launchCmd = __DIR__ . '/collabora/Collabora_Online.AppImage';
+$appImage = __DIR__ . '/collabora/Collabora_Online.AppImage';
 
 function getLoolwsdPid()
 {
@@ -63,13 +63,20 @@ function isLoolwsdRunning()
 
 function startLoolwsd()
 {
-    global $launchCmd;
+    global $appImage;
+    @chmod($appImage, 0744);
+
+    $launchCmd = $appImage;
+
+    // FUSE usually does not work in a docker, unpack instead
+    if (preg_match('/(docker|lxc)/', file_get_contents('/proc/1/cgroup')))
+        $launchCmd .= ' --appimage-extract-and-run';
+
     debug_log("Launch the loolwsd server: $launchCmd");
-    chmod("$launchCmd", 0744);
     exec("$launchCmd >/dev/null & disown", $output, $return);
     if ($return)
     {
-        debug_log("Failed to launch server at $launchCmd.");
+        debug_log("Failed to launch server at $appImage.");
         // errorExit("Server unavialble."); // disown: not found
     }
 }
@@ -88,13 +95,13 @@ function stopLoolwsd()
 // Returns the error ID if we find a problem.
 function checkLoolwsdSetup()
 {
-    global $launchCmd;
+    global $appImage;
 
-    if (!file_exists($launchCmd))
+    if (!file_exists($appImage))
         return 'appimage_missing';
-    else if (!chmod($launchCmd, 0744))
+    else if (!chmod($appImage, 0744))
         return 'chmod_failed';
-    else if (!is_executable($launchCmd))
+    else if (!is_executable($appImage))
         return 'appimage_not_executable';
     else if (!is_callable('exec'))
         return 'exec_disabled';
