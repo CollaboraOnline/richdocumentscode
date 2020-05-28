@@ -174,7 +174,7 @@ if ($statusOnly) {
         if (!empty($err))
             print '{"status":"error","error":"' . $err . '"}';
         else
-            print '{"status":"starting"}';
+            print '{"status":"stopped"}';
     } else if ($errno == 111) {
         print '{"status":"starting"}';
     } else {
