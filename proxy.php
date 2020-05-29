@@ -169,6 +169,7 @@ $local = fsockopen("localhost", 9980, $errno, $errstr, 3);
 // Return the status and exit if it is a ?status request
 if ($statusOnly) {
     header('Content-type: application/json');
+    header('Cache-Control: no-store');
     if (!$local) {
         $err = checkLoolwsdSetup();
         if (!empty($err))
