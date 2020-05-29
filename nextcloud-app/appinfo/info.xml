@@ -16,6 +16,6 @@ This app is installed and used together with the usual Collabora Online app.]]><
     <website>https://collaboraoffice.com/</website>
     <bugs>https://collaboraoffice.com</bugs>
     <dependencies>
-        <nextcloud min-version="18" max-version="20"/>
+        <nextcloud min-version="19" max-version="20"/>
     </dependencies>
 </info>
