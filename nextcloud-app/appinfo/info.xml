@@ -7,7 +7,7 @@
     <description><![CDATA[Collabora Online is a powerful LibreOffice-based online office suite with collaborative editing, which supports all major documents, spreadsheet and presentation file formats and works together with all modern browsers.
 
 This app is installed and used together with the usual Collabora Online app.]]></description>
-    <version>4.2.400</version>
+    <version>4.2.401</version>
     <licence>apache</licence>
     <author>Collabora Productivity</author>
     <namespace>RichDocumentsCODE</namespace>
