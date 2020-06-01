@@ -22,6 +22,11 @@ This app provides a built-in server with all of the document editing features of
     <category>integration</category>
     <website>https://collaboraoffice.com/</website>
     <bugs>https://github.com/CollaboraOnline/richdocumentscode/issues</bugs>
+    <screenshot small-thumbnail="https://www.collaboraoffice.com/nextcloud/collabora-online-screenshot-for-thumbnail.jpg">https://www.collaboraoffice.com/nextcloud/collabora-online-writer-richdocumentcode.png</screenshot>
+    <screenshot>https://www.collaboraoffice.com/nextcloud/collabora-online-calc-cellformat.png</screenshot>
+    <screenshot>https://www.collaboraoffice.com/nextcloud/collabora-online-calc-validity.png</screenshot>
+    <screenshot>https://www.collaboraoffice.com/nextcloud/collabora-online-impress-animations.png</screenshot>
+    <screenshot>https://www.collaboraoffice.com/nextcloud/collabora-online-impress-layouts.png</screenshot>
     <dependencies>
         <nextcloud min-version="19" max-version="20"/>
     </dependencies>
