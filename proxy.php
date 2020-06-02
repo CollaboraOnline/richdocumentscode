@@ -140,6 +140,25 @@ function startsWith($string, $with) {
     return (substr($string, 0, strlen($with)) === $with);
 }
 
+if (!function_exists('getallheaders'))
+{
+	// polyfill, e.g. on PHP 7.2 setups with nginx.
+	// Can be removed when 7.2 becomes unsupported
+	function getallheaders()
+	{
+		$headers = [];
+		if (!is_array($_SERVER)) {
+			return $headers;
+		}
+		foreach ($_SERVER as $name => $value) {
+			if (substr($name, 0, 5) == 'HTTP_') {
+				$headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
+			}
+		}
+		return $headers;
+	}
+}
+
 // avoid unwanted escaping of req= parameter
 $request = $_SERVER['QUERY_STRING'];
 // only asking for status?
@@ -240,7 +259,7 @@ if (!$local) {
 }
 
 // Fetch our headers for later
-$headers = apache_request_headers();
+$headers = getallheaders();
 
 $proxyURL .= $_SERVER['HTTP_HOST'] . $_SERVER['SCRIPT_NAME'] . '?req=';
 debug_log("ProxyPrefix: '$proxyURL'");
