@@ -30,4 +30,8 @@ This app provides a built-in server with all of the document editing features of
     <dependencies>
         <nextcloud min-version="19" max-version="20"/>
     </dependencies>
+    <settings>
+        <admin>OCA\RichDocumentsCODE\Settings\Admin</admin>
+        <admin-section>OCA\RichDocumentsCODE\Settings\Section</admin-section>
+    </settings>
 </info>
