@@ -242,7 +242,7 @@ if (!$local) {
 // Fetch our headers for later
 $headers = apache_request_headers();
 
-$proxyURL .= $_SERVER['SERVER_NAME'] . $_SERVER['SCRIPT_NAME'] . '?req=';
+$proxyURL .= $_SERVER['HTTP_HOST'] . $_SERVER['SCRIPT_NAME'] . '?req=';
 debug_log("ProxyPrefix: '$proxyURL'");
 
 $realRequest = $_SERVER['REQUEST_METHOD'] . " " . $request . " " . $_SERVER['SERVER_PROTOCOL'];
