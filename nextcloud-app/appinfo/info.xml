@@ -12,7 +12,6 @@ This app provides a built-in server with all of the document editing features of
     <version>4.2.402</version>
     <licence>apache</licence>
     <author>Collabora Productivity</author>
-    <namespace>RichDocumentsCODE</namespace>
     <documentation>
         <user>https://collaboraoffice.com/</user>
         <admin>https://github.com/CollaboraOnline/richdocumentscode#richdocumentscode</admin>
@@ -30,4 +29,8 @@ This app provides a built-in server with all of the document editing features of
     <dependencies>
         <nextcloud min-version="19" max-version="20"/>
     </dependencies>
+    <settings>
+        <admin>OCA\RichdocumentsCODE\Settings\Admin</admin>
+        <admin-section>OCA\RichdocumentsCODE\Settings\Section</admin-section>
+    </settings>
 </info>
