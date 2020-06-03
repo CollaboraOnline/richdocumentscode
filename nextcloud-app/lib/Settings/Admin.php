@@ -18,35 +18,22 @@
 namespace OCA\RichDocumentsCODE\Settings;
 
 use OCP\AppFramework\Http\TemplateResponse;
-use OCP\IConfig;
 use OCP\Settings\ISettings;
 
 class Admin implements ISettings
 {
-
-    /** @var IConfig */
-    private $config;
-
-    /**
-     * Admin constructor.
-     *
-     * @param IConfig $config
-     */
-    public function __construct(IConfig $config)
-    {
-        $this->config = $config;
-    }
-
     /**
      * @return TemplateResponse
      */
     public function getForm()
     {
         $isEnabled = 'no';
-        $absoluteUrl = '';
+        $absoluteUrl = '/';
+        $absoluteUrlAdmin = '/';
 
         $urlGenerator = \OC::$server->getURLGenerator();
         $absoluteUrl = $urlGenerator->getAbsoluteURL('/settings/apps/app-bundles/richdocuments');
+        $absoluteUrlAdmin = $urlGenerator->getAbsoluteURL('/settings/admin/richdocuments');
 
         if (\OC::$server->getAppManager()->isEnabledForUser('richdocuments')) {
             $isEnabled = 'yes';
@@ -54,7 +41,8 @@ class Admin implements ISettings
 
         $parameters = [
             'richdocumentsEnabled'    => $isEnabled,
-            'richdocumentsURL'    => $absoluteUrl
+            'richdocumentsURL'    => $absoluteUrl,
+            'richdocumentsAdminURL'    => $absoluteUrlAdmin
         ];
 
         return new TemplateResponse('richdocumentscode', 'admin', $parameters);
@@ -75,6 +63,6 @@ class Admin implements ISettings
      */
     public function getPriority()
     {
-        return 50;
+        return 0;
     }
 }

@@ -61,7 +61,7 @@ class Section implements IIconSection
      */
     public function getPriority()
     {
-        return 50;
+        return 75;
     }
 
     /**
