@@ -21,7 +21,7 @@
     <h2>Collabora Online - Built-in CODE Server</h2>
     <?php if($_['richdocumentsEnabled'] === 'yes'): ?>
         <div id="richdocuments-Enabled">
-            <p>You have the Collabora Online app enabled. Please check <em>Settings > Admin > Collabora Online</em> for further information and configuration.</p>
+            <p>You have the Collabora Online app enabled. Please check <u><a href="<?php echo($_['richdocumentsAdminURL']) ?>">Settings > Admin > Collabora Online</a></u> for further information and configuration.</p>
         </div>
     <?php elseif($_['richdocumentsEnabled'] === 'no'): ?>
         <div id="richdocuments-NotEnabled">
