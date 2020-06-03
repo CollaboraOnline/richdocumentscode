@@ -29,7 +29,7 @@
         </div>
     <?php else: ?>
         <div id="richdocuments-EnabledCheckFailed">
-            An error occurred while trying to check your Collabora Online app installation. You may report this error with the tag: <em>richdocuments-EnabledCheckFailed</em></p>
+            <p>An error occurred while trying to check your Collabora Online app installation. You may report this error with the tag: <em>richdocuments-EnabledCheckFailed</em></p>
         </div>
     <?php endif; ?>
 </div>
