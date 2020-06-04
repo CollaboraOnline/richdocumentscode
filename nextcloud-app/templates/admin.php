@@ -14,22 +14,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/** @var $l \OCP\IL10N */
 /** @var $_ array */
 ?>
 
 <div id="CODE-settings" class="section">
     <h2>Collabora Online - Built-in CODE Server</h2>
-    <?php if($_['richdocumentsEnabled'] === 'yes'): ?>
+    <?php if ($_['richdocumentsEnabled'] === 'yes'): ?>
         <div id="richdocuments-Enabled">
-            <p>You have the Collabora Online app enabled. Please check <u><a href="<?php echo($_['richdocumentsAdminURL']) ?>">Settings > Admin > Collabora Online</a></u> for further information and configuration.</p>
+            <p><?php p($l->t('You have the Collabora Online app enabled. For further information and configuration, please check:')); ?>
+                <u><a href="<?php
+                    echo($_['richdocumentsAdminURL']);
+                    ?>">
+                        <?php p($l->t('Settings > Administration > Collabora Online')); ?>
+                    </a>
+                </u>
+            </p>
         </div>
-    <?php elseif($_['richdocumentsEnabled'] === 'no'): ?>
+    <?php elseif ($_['richdocumentsEnabled'] === 'no'): ?>
         <div id="richdocuments-NotEnabled">
-            <p>Built-in CODE server is designed to work with the usual Collabora Online app. You may <u><a href="<?php echo($_['richdocumentsURL']) ?>">install it from the Nextcloud App Store.</a></u></p>
+            <p>
+                <?php p($l->t('Built-in CODE server is designed to work with the usual Collabora Online app.')); ?>
+                <u>
+                    <a href="<?php echo($_['richdocumentsURL']) ?>">
+                        <?php p($l->t('Install it from the Nextcloud App Store.')); ?>
+                    </a>
+                </u>
+            </p>
         </div>
     <?php else: ?>
         <div id="richdocuments-EnabledCheckFailed">
-            <p>An error occurred while trying to check your Collabora Online app installation. You may report this error with the tag: <em>richdocuments-EnabledCheckFailed</em></p>
+            <p><?php p($l->t('An error occurred while trying to check your Collabora Online app installation. You may report this error
+                with the tag: <em>richdocuments-EnabledCheckFailed</em>')); ?></p>
         </div>
     <?php endif; ?>
 </div>
