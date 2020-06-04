@@ -17,16 +17,26 @@
 
 namespace OCA\RichDocumentsCODE\Settings;
 
+use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\Settings\IIconSection;
 
 class Section implements IIconSection
 {
+    /** @var IL10N */
+    private $l10n;
+
     /** @var IURLGenerator */
     private $url;
 
-    public function __construct(IURLGenerator $url)
+    /**
+     * Section constructor.
+     * @param IL10N $l10n
+     * @param IURLGenerator $url
+     */
+    public function __construct(IL10N $l10n, IURLGenerator $url)
     {
+        $this->l10n = $l10n;
         $this->url = $url;
     }
 
@@ -49,7 +59,8 @@ class Section implements IIconSection
      */
     public function getName()
     {
-        return "Built-in CODE Server";
+        // TRANSLATORS CODE means Collabora Online Development Edition. Please do not translate it.
+        return $this->l10n->t('Built-in CODE Server');
     }
 
     /**
