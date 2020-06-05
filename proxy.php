@@ -190,8 +190,10 @@ if ($statusOnly) {
         $err = checkLoolwsdSetup();
         if (!empty($err))
             print '{"status":"error","error":"' . $err . '"}';
-        else
-            print '{"status":"stopped"}';
+        else {
+            startLoolwsd();
+            print '{"status":"starting"}';
+        }
     } else if ($errno == 111) {
         print '{"status":"starting"}';
     } else {
