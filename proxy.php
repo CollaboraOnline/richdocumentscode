@@ -66,14 +66,11 @@ function startLoolwsd()
     global $appImage;
     @chmod($appImage, 0744);
 
-    $launchCmd = $appImage;
-
-    // FUSE usually does not work in a docker, unpack instead
-    if (preg_match('/(docker|lxc)/', file_get_contents('/proc/1/cgroup')))
-        $launchCmd .= ' --appimage-extract-and-run';
+    // Extract the AppImage if FUSE is not available
+    $launchCmd = "( $appImage || $appImage --appimage-extract-and-run ) >/dev/null & disown";
 
     debug_log("Launch the loolwsd server: $launchCmd");
-    exec("$launchCmd >/dev/null & disown", $output, $return);
+    exec($launchCmd, $output, $return);
     if ($return)
     {
         debug_log("Failed to launch server at $appImage.");
