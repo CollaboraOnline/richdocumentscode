@@ -14,6 +14,8 @@ requirement on FUSE.
 - 100 kbit/s network bandwidth / user
 - 350 MB space on disk
 - Nextcloud 19 with [Collabora Online app](https://apps.nextcloud.com/apps/richdocuments) 3.7.0
-- Kernel supporting the FUSE (Filesystem in Userspace) which is a requirement for AppImage
-- FUSE 2 (libfuse.so.2 - required by Collabora_Online.AppImage)
 - Fontconfig (libfontconfig.so.1 - required by Collabora_Online.AppImage)
+### Optional
+- Kernel supporting the FUSE (Filesystem in Userspace)
+- FUSE 2 (libfuse.so.2)
+Note: If FUSE support is not present, the AppImage will be started with `--appimage-extract-and-run` parameter.
