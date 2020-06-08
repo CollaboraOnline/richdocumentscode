@@ -8,6 +8,7 @@
 - Check for fontconfig in proxy.php?status
 - Show icons on mobile user interface
 - Do not check for root user when started with --disable-lool-user-checking (snap)
+- Disable seccomp for AppImage
 - Make native drawing of FormattedField work [tdf#133498](https://bugs.documentfoundation.org/show_bug.cgi?id=133498)
 - Don't enter the OLE editing mode right after inserting a chart.
 - Formula bar: missing text selection handles
