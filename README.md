@@ -18,4 +18,5 @@ requirement on FUSE.
 ### Optional
 - Kernel supporting the FUSE (Filesystem in Userspace)
 - FUSE 2 (libfuse.so.2)
-Note: If FUSE support is not present, the AppImage will be started with `--appimage-extract-and-run` parameter.
+
+**Note:** If FUSE support is not present, the AppImage will be started with `--appimage-extract-and-run` parameter.
