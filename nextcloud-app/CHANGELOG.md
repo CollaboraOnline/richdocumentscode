@@ -1,4 +1,4 @@
-## 4.2.404 - 2020-06-02
+## 4.2.404 - 2020-06-09
 ### New feature:
 - Add the Admin Settings page in Nextcloud
 - Add 'Remove tabstop' option to ruler
