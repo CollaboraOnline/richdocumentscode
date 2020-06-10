@@ -111,6 +111,10 @@ function checkLoolwsdSetup()
     if ($return)
         return 'no_fontconfig';
 
+    exec("ldd $appImage", $output, $return);
+    if ($return)
+        return 'no_glibc';
+
     return '';
 }
 
