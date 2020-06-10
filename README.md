@@ -13,7 +13,8 @@ requirement on FUSE.
 - 1 GB RAM + 100 MB RAM / user
 - 100 kbit/s network bandwidth / user
 - 350 MB space on disk
-- Nextcloud 19 with [Collabora Online app](https://apps.nextcloud.com/apps/richdocuments) 3.7.0
+- Nextcloud 19 with [Collabora Online app](https://apps.nextcloud.com/apps/richdocuments) 3.7.0 or higher
+- glibc ([AppImage does not support musl libc](https://github.com/AppImage/AppImageKit/issues/1015))
 - Fontconfig (libfontconfig.so.1 - required by Collabora_Online.AppImage)
 ### Optional
 - Kernel supporting the FUSE (Filesystem in Userspace)
