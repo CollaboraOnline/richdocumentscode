@@ -107,7 +107,7 @@ function checkLoolwsdSetup()
     else if (php_uname('m') !== 'x86_64')
         return 'not_x86_64';
 
-    exec('/sbin/ldconfig -p | grep fontconfig > /dev/null 2>&1', $output, $return);
+    exec('( /sbin/ldconfig -p || scanelf -l ) | grep fontconfig > /dev/null 2>&1', $output, $return);
     if ($return)
         return 'no_fontconfig';
 
