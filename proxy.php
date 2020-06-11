@@ -94,7 +94,11 @@ function checkLoolwsdSetup()
 {
     global $appImage;
 
-    if (!file_exists($appImage))
+    if (PHP_OS_FAMILY !== 'Linux')
+        return 'not_linux';
+    else if (php_uname('m') !== 'x86_64')
+        return 'not_x86_64';
+    else if (!file_exists($appImage))
         return 'appimage_missing';
     else if (!chmod($appImage, 0744))
         return 'chmod_failed';
@@ -102,18 +106,14 @@ function checkLoolwsdSetup()
         return 'appimage_not_executable';
     else if (!is_callable('exec'))
         return 'exec_disabled';
-    else if (PHP_OS_FAMILY !== 'Linux')
-        return 'not_linux';
-    else if (php_uname('m') !== 'x86_64')
-        return 'not_x86_64';
-
-    exec('( /sbin/ldconfig -p || scanelf -l ) | grep fontconfig > /dev/null 2>&1', $output, $return);
-    if ($return)
-        return 'no_fontconfig';
 
     exec("ldd $appImage", $output, $return);
     if ($return)
         return 'no_glibc';
+
+    exec('( /sbin/ldconfig -p || scanelf -l ) | grep fontconfig > /dev/null 2>&1', $output, $return);
+    if ($return)
+        return 'no_fontconfig';
 
     return '';
 }
