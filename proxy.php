@@ -188,7 +188,7 @@ if ($request == '' && !$statusOnly)
 
 // If we can't get a socket open in 3 seconds when that is backed by
 // a dedicated thread, then we have a server missing in action.
-$local = fsockopen("localhost", 9982, $errno, $errstr, 3);
+$local = @fsockopen("localhost", 9982, $errno, $errstr, 3);
 
 // Return the status and exit if it is a ?status request
 if ($statusOnly) {
