@@ -1,3 +1,17 @@
+## 4.2.405 - 2020-06-21
+### New feature:
+- Compatibility with snap: it needs a specific unix socket name
+## Fixed:
+- Fixed 'Save as' and 'Insert local image' features
+- Fixed Chinese (Taiwan) localization of sidebar
+- Fixed a crash in Japanese Calc
+- Disabled tooltips on Calc formula bar, that overlapped the entered text
+- Fixed: in Impress hyperlink were inserted as button instead of text object
+- Fixed: in Writer first-line indent, paragraph indent, and tab spaces on ruler
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-4.2.4-5](https://git.libreoffice.org/online/+/refs/tags/cp-4.2.4-5)
+- Collabora Office tag [cp-6.2-17](https://git.libreoffice.org/core/+/refs/tags/cp-6.2-17)
+
 ## 4.2.404 - 2020-06-09
 ### New feature:
 - Add the Admin Settings page in Nextcloud
