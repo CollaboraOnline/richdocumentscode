@@ -1,8 +1,9 @@
 ## 4.2.406 - 2020-06-22
 ### Fixed:
 - Better check for the fail on musl-based distros
+- Try to set en_US.UTF-8 locale, if C.UTF-8 locale is not available
 ### AppImage version:
-- Collabora Online Development Edition (CODE) tag [cp-4.2.4-5](https://git.libreoffice.org/online/+/refs/tags/cp-4.2.4-5)
+- Collabora Online Development Edition (CODE) tag [cp-4.2.4-6](https://git.libreoffice.org/online/+/refs/tags/cp-4.2.4-6)
 - Collabora Office tag [cp-6.2-17](https://git.libreoffice.org/core/+/refs/tags/cp-6.2-17)
 
 ## 4.2.405 - 2020-06-21
