@@ -1,7 +1,14 @@
+## 4.2.406 - 2020-06-22
+### Fixed:
+- Better check for the fail on musl-based distros
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-4.2.4-5](https://git.libreoffice.org/online/+/refs/tags/cp-4.2.4-5)
+- Collabora Office tag [cp-6.2-17](https://git.libreoffice.org/core/+/refs/tags/cp-6.2-17)
+
 ## 4.2.405 - 2020-06-21
 ### New feature:
 - Compatibility with snap: it needs a specific unix socket name
-## Fixed:
+### Fixed:
 - Fixed 'Save as' and 'Insert local image' features
 - Fixed Chinese (Taiwan) localization of sidebar
 - Fixed a crash in Japanese Calc
