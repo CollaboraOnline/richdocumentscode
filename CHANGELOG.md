@@ -1,3 +1,10 @@
+## 4.2.407 - 2020-06-23
+### Fixed:
+- Another try for the right check how to detect musl-based distros
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-4.2.4-6](https://git.libreoffice.org/online/+/refs/tags/cp-4.2.4-6)
+- Collabora Office tag [cp-6.2-17](https://git.libreoffice.org/core/+/refs/tags/cp-6.2-17)
+
 ## 4.2.406 - 2020-06-22
 ### Fixed:
 - Better check for the fail on musl-based distros
