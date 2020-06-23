@@ -107,9 +107,9 @@ function checkLoolwsdSetup()
     else if (!is_callable('exec'))
         return 'exec_disabled';
 
-    exec("$appImage --appimage-version", $output, $return);
+    exec("LD_TRACE_LOADED_OBJECTS=1 $appImage", $output, $return);
     if ($return)
-        return 'appimage_not_executable';
+        return 'no_glibc';
 
     exec('( /sbin/ldconfig -p || scanelf -l ) | grep fontconfig > /dev/null 2>&1', $output, $return);
     if ($return)
