@@ -1,0 +1,14 @@
+OC.L10N.register(
+    "richdocumentscode",
+    {
+    "Built-in CODE Server" : "組み込みCODEサーバー",
+    "Collabora Online - Built-in CODE Server" : "Collabora Online - 組み込みCODEサーバー",
+    "Built-in Collabora Online Development Edition (CODE) server for local testing and non-production use" : "組み込み Collabora Online 開発者向けエディション (CODE) サーバー ローカルテストおよび非生産的使用向け",
+    "This app has to be installed and used together with the **[Collabora Online](https://apps.nextcloud.com/apps/richdocuments)** app.\n\nCollabora Online is a powerful LibreOffice-based online office suite with collaborative editing, which supports all major documents, spreadsheet and presentation file formats and works together with all modern browsers.\n\nThis app provides a built-in server with all of the document editing features of Collabora Online. Easy to install, for personal use or for small teams. A bit slower than a standalone server and without the advanced scalability features." : "このアプリは、**[Collabora Online](https://apps.nextcloud.com/apps/richdocuments)**アプリと一緒にインストールして使用する必要があります。\n\nCollabora Onlineは、コラボレーション編集機能を備えた強力なLibreOfficeベースのオンラインオフィススイートで、すべての主要なドキュメント、スプレッドシート、プレゼンテーションファイル形式をサポートし、すべての最新ブラウザと連携します。\n\nこのアプリは、Collabora Onlineのすべてのドキュメント編集機能を備えたビルトインサーバーを提供します。個人での使用や小規模なチームでの使用として、簡単にインストールすることができます。スタンドアロンサーバーよりも若干遅く、高度なスケーラビリティ機能はありません。",
+    "You have the Collabora Online app enabled. For further information and configuration, please check:" : "Collabora Online アプリが有効になっています。詳細や設定についてはこちらをご確認ください : ",
+    "Settings > Administration > Collabora Online" : "設定 > 管理 > Collabora Online",
+    "Built-in CODE server is designed to work with the usual Collabora Online app." : "組み込みCODEサーバーは、通常のCollabora Onlineアプリと連動するように設計されています。",
+    "Install it from the Nextcloud App Store." : "Nextcloud App Store からインストール",
+    "An error occurred while trying to check your Collabora Online app installation. You may report this error\n                with the tag: <em>richdocuments-EnabledCheckFailed</em>" : "Collabora Online アプリのインストールを確認しようとしたときにエラーが発生しました。このエラーを報告してください。\nタグ: <em>richdocuments-EnabledCheckFailed</em>"
+},
+"nplurals=1; plural=0;");
