@@ -1,3 +1,15 @@
+## 4.2.503 - 2020-06-29
+### New feature:
+- Added localizations of admin panel strings
+### Fixed:
+- Fixed image URLs of help and about box logo
+- Fixed default user avatar image
+- Fixed sidebar panel scrolling
+- Fixed messed up view when deleting from multiline content in Calc
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-4.2.5-3](https://git.libreoffice.org/online/+/refs/tags/cp-4.2.5-3)
+- Collabora Office tag [cp-6.2-18](https://git.libreoffice.org/core/+/refs/tags/cp-6.2-18)
+
 ## 4.2.407 - 2020-06-23
 ### Fixed:
 - Another try for the right check how to detect musl-based distros
