@@ -236,12 +236,8 @@ if ($statusOnly) {
     http_response_code(200);
     exit();
 }
-// URL into this server of the proxy script.
-if (isset($_SERVER['HTTPS'])) {
-    $proxyURL = "https://";
-} else {
-    $proxyURL = "http://";
-}
+
+$proxyURL = "//";
 
 // Start the appimage if necessary
 if (!$local)
