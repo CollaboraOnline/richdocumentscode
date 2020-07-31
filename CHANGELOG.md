@@ -1,3 +1,17 @@
+## 4.2.602 - 2020-07-31
+### New feature:
+- Possibility to lock the document for editing
+- Add support for BreadcrumbDocName
+### Fixed:
+- Fixed Chinese (Taiwan) localization
+- Fixed displaying of close button
+- Send Action_Save_Resp when notification was requested on save as
+- Fixed clipboard handling when copying is disabled
+- Other small cosmetic fixes
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-4.2.6-2](https://git.libreoffice.org/online/+/refs/tags/cp-4.2.6-2)
+- Collabora Office tag [cp-6.2-21](https://git.libreoffice.org/core/+/refs/tags/cp-6.2-21)
+
 ## 4.2.503 - 2020-06-29
 ### New feature:
 - Added localizations of admin panel strings
