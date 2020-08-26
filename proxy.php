@@ -237,7 +237,10 @@ if ($statusOnly) {
     exit();
 }
 // URL into this server of the proxy script.
-if (isset($_SERVER['HTTPS'])) {
+if ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+	|| (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https' )
+	|| (isset($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on')
+) {
     $proxyURL = "https://";
 } else {
     $proxyURL = "http://";
