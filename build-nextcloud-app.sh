@@ -48,7 +48,6 @@ chmod a+x "${app_name}/collabora/Collabora_Online.AppImage"
 HASH=`./${app_name}/collabora/Collabora_Online.AppImage --version-hash`
 echo "HASH: $HASH"
 sed "s/%LOOLWSD_VERSION_HASH%/$HASH/g" ../proxy.php > ${app_name}/proxy.php
-cp ../proxy.php > ${app_name}/proxy.php
 
 # check if we are building for arm64
 if [[ "$APPIMAGE_URL" =~ "arm64" ]]; then
