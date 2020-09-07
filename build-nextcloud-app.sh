@@ -48,6 +48,23 @@ chmod a+x "${app_name}/collabora/Collabora_Online.AppImage"
 HASH=`./${app_name}/collabora/Collabora_Online.AppImage --version-hash`
 echo "HASH: $HASH"
 sed "s/%LOOLWSD_VERSION_HASH%/$HASH/g" ../proxy.php > ${app_name}/proxy.php
+cp ../proxy.php > ${app_name}/proxy.php
+
+# check if we are building for arm64
+if [[ "$APPIMAGE_URL" =~ "arm64" ]]; then
+    echo "Building for arm64"
+    echo
+
+    mv ${app_name} richdocumentscode_arm64
+    app_name=richdocumentscode_arm64
+
+    sed -i.bak "s/x86_64/aarch64/g" ${app_name}/proxy.php
+    sed -i.bak -e 's/<id>richdocumentscode/<id>richdocumentscode_arm64/g' -e 's/Built-in CODE Server/Built-in CODE Server for ARM64/g' ${app_name}/appinfo/info.xml
+
+    # clean-up
+    rm ${app_name}/proxy.php.bak
+    rm ${app_name}/appinfo/info.xml.bak
+fi
 
 echo "Signing…"
 $occ integrity:sign-app --privateKey=${cert_dir}/${app_name}.key --certificate=${cert_dir}/${app_name}.crt --path=$(pwd)/${app_name}
