@@ -1,3 +1,12 @@
+## 4.2.800 - 2020-09-08
+### New feature:
+- Search in embedded PDF files
+### Fixed:
+- Small UI fixes and improved translations
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-4.2.8-1](https://git.libreoffice.org/online/+/refs/tags/cp-4.2.8-1)
+- Collabora Office tag [cp-6.2-23](https://git.libreoffice.org/core/+/refs/tags/cp-6.2-23)
+
 ## 4.2.602 - 2020-07-31
 ### New feature:
 - Possibility to lock the document for editing
