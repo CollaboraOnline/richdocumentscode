@@ -22,7 +22,7 @@
     <h2>Collabora Online - Built-in CODE Server</h2>
     <?php if ($_['appArch'] === 'x86_64' && php_uname('m') === 'aarch64'): ?>
         <div id="richdocumentscode-arm64-needed">
-            <p><?php p($l->t('Your system is ARM64, but you have installed the x86_64 version of the app. Please remove this, and')); ?>
+            <p><?php p($l->t('Your system is ARM64, but you have installed the x86_64 version of the app. Please remove this and')); ?>
                 <u><a href="<?php echo($_['appInstallUrl']) ?>">
                     <?php p($l->t('install the correct version from the Nextcloud App Store.')); ?>
                     </a>
@@ -31,7 +31,7 @@
         </div>
     <?php elseif ($_['appArch'] === 'aarch64' && php_uname('m') === 'x86_64'): ?>
         <div id="richdocumentscode-arm64-needed">
-            <p><?php p($l->t('Your system is x86_64, but you have installed the ARM64 version of the app. Please remove this, and')); ?>
+            <p><?php p($l->t('Your system is x86_64, but you have installed the ARM64 version of the app. Please remove this and')); ?>
                 <u><a href="<?php echo($_['appInstallUrl']) ?>">
                     <?php p($l->t('install the correct version from the Nextcloud App Store.')); ?>
                     </a>
