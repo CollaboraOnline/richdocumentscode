@@ -59,7 +59,7 @@ if [[ "$APPIMAGE_URL" =~ "arm64" ]]; then
 
     sed -i.bak "s/x86_64/aarch64/g" ${app_name}/proxy.php
     sed -i.bak -e 's/<id>richdocumentscode/<id>richdocumentscode_arm64/g' -e 's/Built-in CODE Server/Built-in CODE Server (ARM64)/g' ${app_name}/appinfo/info.xml
-    sed -i.bak "s/richdocumentscode/richdocumentscode_arm64/g" ${app_name}/lib/Settings/Admin.php
+    sed -i.bak "s/richdocumentscode'/richdocumentscode_arm64'/g" ${app_name}/lib/Settings/Admin.php
     sed -i.bak "s/richdocumentscode/richdocumentscode_arm64/g" ${app_name}/lib/Settings/Section.php
 
     for f in ${app_name}/l10n/*.js; do
