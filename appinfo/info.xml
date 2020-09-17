@@ -30,6 +30,7 @@ This app provides a built-in server with all of the document editing features of
     <screenshot>https://www.collaboraoffice.com/nextcloud/code/collabora-online-screenshot-5.png</screenshot>
     <dependencies>
         <nextcloud min-version="19" max-version="20"/>
+        <architecture>x86_64</architecture>
     </dependencies>
     <settings>
         <admin>OCA\RichDocumentsCODE\Settings\Admin</admin>
