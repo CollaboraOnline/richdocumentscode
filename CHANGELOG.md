@@ -1,3 +1,12 @@
+## 6.4.003 - 2020-09-28
+### New feature:
+- New major release based on CODE 6.4
+- Freeze rows and columns in spreadsheets
+- PDF annotation
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-6.4.0-3](https://git.libreoffice.org/online/+/refs/tags/cp-6.4.0-3)
+- Collabora Office tag [cp-6.4-6](https://git.libreoffice.org/core/+/refs/tags/cp-6.4-6)
+
 ## 4.2.800 - 2020-09-08
 ### New feature:
 - Search in embedded PDF files
