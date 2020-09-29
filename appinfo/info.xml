@@ -23,11 +23,11 @@ This app provides a built-in server with all of the document editing features of
     <website>https://collaboraoffice.com/</website>
     <bugs>https://github.com/CollaboraOnline/richdocumentscode/issues</bugs>
     <repository type="git">https://github.com/CollaboraOnline/richdocumentscode.git</repository>
-    <screenshot small-thumbnail="https://www.collaboraoffice.com/nextcloud/code/collabora-online-screenshot-for-thumbnail.jpg">https://www.collaboraoffice.com/nextcloud/code/collabora-online-screenshot-1.png</screenshot>
-    <screenshot>https://www.collaboraoffice.com/nextcloud/code/collabora-online-screenshot-2.png</screenshot>
-    <screenshot>https://www.collaboraoffice.com/nextcloud/code/collabora-online-screenshot-3.png</screenshot>
-    <screenshot>https://www.collaboraoffice.com/nextcloud/code/collabora-online-screenshot-4.png</screenshot>
-    <screenshot>https://www.collaboraoffice.com/nextcloud/code/collabora-online-screenshot-5.png</screenshot>
+    <screenshot small-thumbnail="https://www.collaboraoffice.com/downloads/nextcloud/richdocumentscode/collabora-online-screenshot-for-thumbnail.jpg">https://www.collaboraoffice.com/downloads/nextcloud/richdocumentscode/collabora-online-screenshot-1.png</screenshot>
+    <screenshot>https://www.collaboraoffice.com/downloads/nextcloud/richdocumentscode/collabora-online-screenshot-2.png</screenshot>
+    <screenshot>https://www.collaboraoffice.com/downloads/nextcloud/richdocumentscode/collabora-online-screenshot-3.png</screenshot>
+    <screenshot>https://www.collaboraoffice.com/downloads/nextcloud/richdocumentscode/collabora-online-screenshot-4.png</screenshot>
+    <screenshot>https://www.collaboraoffice.com/downloads/nextcloud/richdocumentscode/collabora-online-screenshot-5.png</screenshot>
     <dependencies>
         <nextcloud min-version="19" max-version="20"/>
         <architecture>x86_64</architecture>
