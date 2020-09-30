@@ -24,7 +24,7 @@ EOF
 test "$1" == "-f" && shift
 
 # use the latest, unless URL specified on the command line
-APPIMAGE_URL=${1:-https://www.collaboraoffice.com/Collabora-Office-AppImage-Snapshot/collabora-online-snapshot-LATEST.AppImage}
+APPIMAGE_URL=${1:-https://www.collaboraoffice.com/downloads/Collabora-Office-AppImage-Release/collabora-online-release-LATEST.AppImage}
 
 echo "Using the AppImage from: $APPIMAGE_URL"
 echo
