@@ -1,3 +1,11 @@
+## 6.4.007 - 2020-10-08
+### Fixed:
+- Update location of screenshots
+- Update default AppImage url
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-6.4.0-7](https://github.com/CollaboraOnline/online/tree/cp-6.4.0-7)
+- Collabora Office tag [cp-6.4-6](https://git.libreoffice.org/core/+/refs/tags/cp-6.4-6)
+
 ## 6.4.003 - 2020-09-28
 ### New feature:
 - New major release based on CODE 6.4
