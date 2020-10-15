@@ -1,3 +1,10 @@
+## 4.2.900 - 2020-10-15
+### Fixed:
+- ARM64 detection
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-4.2.9-1](https://git.libreoffice.org/online/+/refs/tags/cp-4.2.9-1)
+- Collabora Office tag [cp-6.2-24](https://git.libreoffice.org/core/+/refs/tags/cp-6.2-24)
+
 ## 4.2.801 - 2020-10-15
 ### Fixed:
 - ARM64 detection
