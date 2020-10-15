@@ -1,3 +1,10 @@
+## 4.2.801 - 2020-10-15
+### Fixed:
+- ARM64 detection
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-4.2.8-1](https://git.libreoffice.org/online/+/refs/tags/cp-4.2.8-1)
+- Collabora Office tag [cp-6.2-23](https://git.libreoffice.org/core/+/refs/tags/cp-6.2-23)
+
 ## 4.2.800 - 2020-09-08
 ### New feature:
 - Search in embedded PDF files
