@@ -209,7 +209,7 @@ if ($statusOnly) {
         if ($response) {
             // Version check.
             $obj = json_decode($response);
-            $actVer = $obj->{'productVersionHash'};
+            $actVer = substr($obj->{'productVersionHash'}, 0, 8); // expVer is at most 8 characters long
             $expVer = '%LOOLWSD_VERSION_HASH%';
             if ($actVer != $expVer && $expVer != '%' . 'LOOLWSD_VERSION_HASH' . '%') { // deliberately split so that sed does not touch this during build-time
                 // Old/unexpected server version; restart.
