@@ -1,4 +1,4 @@
-## 6.4.013 - 2020-10-25
+## 6.4.13 - 2020-10-25
 ### New feature:
 - New major release based on CODE 6.4
 - Freeze rows and columns in spreadsheets
