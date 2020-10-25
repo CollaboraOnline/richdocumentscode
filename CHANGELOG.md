@@ -1,4 +1,4 @@
-## 6.4.011 - 2020-10-22
+## 6.4.013 - 2020-10-25
 ### New feature:
 - New major release based on CODE 6.4
 - Freeze rows and columns in spreadsheets
@@ -7,8 +7,8 @@
 - Update location of screenshots
 - Update default AppImage url
 ### AppImage version:
-- Collabora Online Development Edition (CODE) tag [cp-6.4.0-11](https://github.com/CollaboraOnline/online/releases/tag/cp-6.4.0-11)
-- Collabora Office tag [cp-6.4-8](https://git.libreoffice.org/core/+/refs/tags/cp-6.4-8)
+- Collabora Online Development Edition (CODE) tag [cp-6.4.0-13](https://github.com/CollaboraOnline/online/releases/tag/cp-6.4.0-13)
+- Collabora Office tag [cp-6.4-9](https://git.libreoffice.org/core/+/refs/tags/cp-6.4-9)
 
 ## 4.2.900 - 2020-10-15
 ### Fixed:
