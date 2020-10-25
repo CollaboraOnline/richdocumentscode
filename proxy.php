@@ -252,10 +252,14 @@ if (!$local)
     if (!isLoolwsdRunning())
         startLoolwsd();
 
+    $logonce = true;
     while (true) {
-        $local = fsockopen("localhost", 9982, $errno, $errstr, 15);
+        $local = @fsockopen("localhost", 9982, $errno, $errstr, 15);
         if ($errno == 111) {
-            debug_log("Can't yet connect to socket so sleep");
+            if($logonce) {
+               debug_log("Can't yet connect to socket so sleep");
+               $logonce = false;
+            }
             usleep(50 * 1000); // 50ms.
         } else {
             debug_log("connected?");
