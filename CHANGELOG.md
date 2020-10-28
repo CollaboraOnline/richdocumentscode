@@ -1,3 +1,10 @@
+## 6.4.14 - 2020-10-28
+### Fixed:
+- Add Collabora Office's program directory to LD_LIBRARY_PATH in AppImage on ARM64, in order to find the right libxml2.so
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-6.4.0-14](https://github.com/CollaboraOnline/online/releases/tag/cp-6.4.0-14)
+- Collabora Office tag [cp-6.4-10](https://git.libreoffice.org/core/+/refs/tags/cp-6.4-10)
+
 ## 6.4.13 - 2020-10-25
 ### New feature:
 - New major release based on CODE 6.4
