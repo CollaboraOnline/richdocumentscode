@@ -100,7 +100,7 @@ function checkLoolwsdSetup()
         return 'not_x86_64';
     else if (!file_exists($appImage))
         return 'appimage_missing';
-    else if (!chmod($appImage, 0744))
+    else if (fileperms($appImage) & 0744 != 0744 && !chmod($appImage, 0744))
         return 'chmod_failed';
     else if (!is_executable($appImage))
         return 'appimage_not_executable';
