@@ -1,3 +1,11 @@
+## 6.4.203 - 2020-12-19
+### Fixed:
+- Fixed user ID check in Nextcloud snap: https://github.com/nextcloud/richdocuments/issues/1282
+- Translation updates
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-6.4.2-3](https://github.com/CollaboraOnline/online/releases/tag/cp-6.4.2-3)
+- Collabora Office tag [cp-6.4-15](https://git.libreoffice.org/core/+/refs/tags/cp-6.4-15)
+
 ## 6.4.202 - 2020-12-03
 ### Fixed:
 - Check permissions before chmod
