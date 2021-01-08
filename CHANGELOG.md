@@ -1,3 +1,10 @@
+## 6.4.301 - 2021-01-08
+### Fixed:
+- Translation updates
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-6.4.3-1](https://github.com/CollaboraOnline/online/releases/tag/cp-6.4.3-1)
+- Collabora Office tag [cp-6.4-19](https://git.libreoffice.org/core/+/refs/tags/cp-6.4-19)
+
 ## 6.4.203 - 2020-12-19
 ### Fixed:
 - Fixed user ID check in Nextcloud snap: https://github.com/nextcloud/richdocuments/issues/1282
