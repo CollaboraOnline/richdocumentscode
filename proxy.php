@@ -45,11 +45,12 @@ $appImage = __DIR__ . '/collabora/Collabora_Online.AppImage';
 
 function getLoolwsdPid()
 {
-    exec("pidof loolwsd", $output, $return);
-    if ($return == 0 && count($output) > 0)
+    $pidfile = '/tmp/loolwsd.pid';
+    if (file_exists($pidfile))
     {
-        debug_log("Loolwsd server running with pid: " . implode(', ', $output));
-        return $output;
+        $pid = file_get_contents($pidfile);
+        debug_log("Loolwsd server running with pid: " . $pid);
+        return $pid;
     }
 
     debug_log("Loolwsd server is not running.");
