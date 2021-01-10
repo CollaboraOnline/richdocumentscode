@@ -68,14 +68,13 @@ function startLoolwsd()
     @chmod($appImage, 0744);
 
     // Extract the AppImage if FUSE is not available
-    $launchCmd = "( $appImage || $appImage --appimage-extract-and-run ) >/dev/null & disown";
+    $launchCmd = "bash -c \"( $appImage || $appImage --appimage-extract-and-run ) >/dev/null & disown\"";
 
     debug_log("Launch the loolwsd server: $launchCmd");
     exec($launchCmd, $output, $return);
     if ($return)
     {
         debug_log("Failed to launch server at $appImage.");
-        // errorExit("Server unavialble."); // disown: not found
     }
 }
 
