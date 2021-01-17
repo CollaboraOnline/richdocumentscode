@@ -59,7 +59,7 @@ function getLoolwsdPid()
 
 function isLoolwsdRunning()
 {
-    return getLoolwsdPid();
+    return file_exists('/proc/' . getLoolwsdPid());
 }
 
 function startLoolwsd()
@@ -70,25 +70,28 @@ function startLoolwsd()
     // Extract the AppImage if FUSE is not available
     $launchCmd = "bash -c \"( $appImage || $appImage --appimage-extract-and-run ) >/dev/null & disown\"";
 
+    // We start a new server, we don't need stale pidfile around
+    if (file_exists('/tmp/loolwsd.pid'))
+        unlink('/tmp/loolwsd.pid');
+
     debug_log("Launch the loolwsd server: $launchCmd");
     exec($launchCmd, $output, $return);
     if ($return)
     {
         debug_log("Failed to launch server at $appImage.");
     }
+    // wait for the pidfile, prevent second start
+    while (!file_exists('/tmp/loolwsd.pid'))
+        sleep(1);
 }
 
 function stopLoolwsd()
 {
     $pid = getLoolwsdPid();
-    if ($pid)
+    if (file_exists('/proc/$pid'))
     {
         debug_log("Stopping the loolwsd server with pid: $pid");
-        exec("kill -s TERM $pid", $output, $return);
-        if ($return) {
-            // no such process?
-            exec("rm /tmp/loolwsd.pid");
-        }
+        exec("kill -s TERM $pid");
     }
 }
 
