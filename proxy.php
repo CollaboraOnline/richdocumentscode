@@ -84,7 +84,11 @@ function stopLoolwsd()
     if ($pid)
     {
         debug_log("Stopping the loolwsd server with pid: $pid");
-        exec("kill -s TERM $pid");
+        exec("kill -s TERM $pid", $output, $return);
+        if ($return) {
+            // no such process?
+            exec("rm /tmp/loolwsd.pid");
+        }
     }
 }
 
