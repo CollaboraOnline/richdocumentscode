@@ -59,7 +59,7 @@ function getLoolwsdPid()
 
 function isLoolwsdRunning()
 {
-    return !empty(getLoolwsdPid());
+    return getLoolwsdPid();
 }
 
 function startLoolwsd()
@@ -81,10 +81,10 @@ function startLoolwsd()
 function stopLoolwsd()
 {
     $pid = getLoolwsdPid();
-    if (!empty($pid))
+    if ($pid)
     {
-        debug_log("Stopping the loolwsd server with pid: " . implode(', ', $pid));
-        exec("kill -s TERM " . implode(' ', $pid));
+        debug_log("Stopping the loolwsd server with pid: $pid");
+        exec("kill -s TERM $pid");
     }
 }
 
