@@ -1,9 +1,16 @@
+## 6.4.303 - 2021-01-17
+### Fixed:
+- do not start loolwsd if it is started already
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-6.4.3-3](https://github.com/CollaboraOnline/online/releases/tag/cp-6.4.3-3)
+- Collabora Office tag [cp-6.4-19](https://git.libreoffice.org/core/+/refs/tags/cp-6.4-19)
+
 ## 6.4.302 - 2021-01-12
 ### Fixed:
 - pidof was not available under Nextcloud snap, use pidfile instead
 - disown was not available under Nextcloud snap's default shell (dash), force bash
 ### AppImage version:
-- Collabora Online Development Edition (CODE) tag [cp-6.4.3-1](https://github.com/CollaboraOnline/online/releases/tag/cp-6.4.3-2)
+- Collabora Online Development Edition (CODE) tag [cp-6.4.3-2](https://github.com/CollaboraOnline/online/releases/tag/cp-6.4.3-2)
 - Collabora Office tag [cp-6.4-19](https://git.libreoffice.org/core/+/refs/tags/cp-6.4-19)
 
 ## 6.4.301 - 2021-01-08
