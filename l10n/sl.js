@@ -10,6 +10,7 @@ OC.L10N.register(
     "You have the Collabora Online app enabled. For further information and configuration, please check:" : "Program Collabora Online je omogočen. Za nadaljnje podrobnosti in nastavitve preverite:",
     "Settings > Administration > Collabora Online" : "Nastavitve > Skrbništvo > Collabora Online",
     "Built-in CODE server is designed to work with the usual Collabora Online app." : "Vgrajen strežnik CODE je zasnovan za delo z uradnim programom Collabora Online.",
-    "Install it from the Nextcloud App Store." : "Namestite program iz trgovine Nextcloud."
+    "Install it from the Nextcloud App Store." : "Namestite program iz trgovine Nextcloud.",
+    "An error occurred while trying to check your Collabora Online app installation. You may report this error\n                with the tag: <em>richdocuments-EnabledCheckFailed</em>" : "Prišlo je do napake med preverjanjem namestitve Collabora Online. Napako sporočite z navedbo\n                oznake: <em>richdocuments-EnabledCheckFailed</em>"
 },
 "nplurals=4; plural=(n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n%100==4 ? 2 : 3);");
