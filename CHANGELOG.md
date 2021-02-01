@@ -1,3 +1,11 @@
+## 6.4.403 - 2021-02-01
+### Fixed:
+- do not start loolwsd if it is started already (better fix)
+- fix crash with libfontconfig in Nextcloud snap
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-6.4.4-3](https://github.com/CollaboraOnline/online/releases/tag/cp-6.4.4-3)
+- Collabora Office tag [cp-6.4-20](https://git.libreoffice.org/core/+/refs/tags/cp-6.4-20)
+
 ## 6.4.303 - 2021-01-17
 ### Fixed:
 - do not start loolwsd if it is started already
