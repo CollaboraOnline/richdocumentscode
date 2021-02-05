@@ -71,7 +71,7 @@ function startLoolwsd()
     $launchCmd = "bash -c \"( $appImage || $appImage --appimage-extract-and-run ) >/dev/null & disown\"";
 
     // Prevent second start
-    $lock = fopen("/tmp/loolwsd.lock", "x");
+    $lock = @fopen("/tmp/loolwsd.lock", "x");
     if ($lock)
     {
         // We start a new server, we don't need stale pidfile around
