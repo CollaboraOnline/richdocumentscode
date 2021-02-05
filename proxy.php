@@ -70,10 +70,9 @@ function startLoolwsd()
     // Extract the AppImage if FUSE is not available
     $launchCmd = "bash -c \"( $appImage || $appImage --appimage-extract-and-run ) >/dev/null & disown\"";
 
-
     // Prevent second start
     $lock = fopen("/tmp/loolwsd.lock", "x");
-    if (!$lock)
+    if ($lock)
     {
         // We start a new server, we don't need stale pidfile around
         if (file_exists('/tmp/loolwsd.pid'))
@@ -85,10 +84,13 @@ function startLoolwsd()
             debug_log("Failed to launch server at $appImage.");
 
         fclose($lock);
-        unlink("/tmp/loolwsd.lock");
     }
+
     while (!isLoolwsdRunning())
         sleep(1);
+
+    if (file_exists('/tmp/loolwsd.lock'))
+        unlink('/tmp/loolwsd.lock');
 }
 
 function stopLoolwsd()
