@@ -1,3 +1,10 @@
+## 6.4.503 - 2021-02-05
+### Fixed:
+- fixed logical error in startup code
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-6.4.5-3](https://github.com/CollaboraOnline/online/releases/tag/cp-6.4.5-3)
+- Collabora Office tag [cp-6.4-22](https://git.libreoffice.org/core/+/refs/tags/cp-6.4-22)
+
 ## 6.4.403 - 2021-02-01
 ### Fixed:
 - do not start loolwsd if it is started already (better fix)
