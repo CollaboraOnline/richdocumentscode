@@ -48,7 +48,7 @@ function getLoolwsdPid()
     $pidfile = '/tmp/loolwsd.pid';
     if (file_exists($pidfile))
     {
-        $pid = file_get_contents($pidfile);
+        $pid = rtrim(file_get_contents($pidfile));
         debug_log("Loolwsd server running with pid: " . $pid);
         return $pid;
     }
