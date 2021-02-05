@@ -21,7 +21,7 @@
 function debug_log($msg)
 {
     // Disabled for production; enable for debugging
-    //error_log("richdocumentscode (proxy.php): $msg");
+    // error_log("richdocumentscode (proxy.php), PID: " . getmypid() . ": $msg");
 }
 
 function errorExit($msg)
