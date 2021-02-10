@@ -70,6 +70,11 @@ function startLoolwsd()
     // Extract the AppImage if FUSE is not available
     $launchCmd = "bash -c \"( $appImage || $appImage --appimage-extract-and-run ) >/dev/null & disown\"";
 
+    // Remove stale lock file (just in case)
+    if (file_exists('/tmp/loolwsd.lock'))
+        if (time() - filectime('/tmp/loolwsd.lock') > 60 * 5)
+            unlink('/tmp/loolwsd.lock');
+
     // Prevent second start
     $lock = @fopen("/tmp/loolwsd.lock", "x");
     if ($lock)
