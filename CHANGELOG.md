@@ -1,3 +1,10 @@
+## 6.4.601 - 2021-02-11
+### Fixed:
+- remove stale lockfile
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-6.4.6-1](https://github.com/CollaboraOnline/online/releases/tag/cp-6.4.6-1)
+- Collabora Office tag [cp-6.4-23](https://git.libreoffice.org/core/+/refs/tags/cp-6.4-23)
+
 ## 6.4.503 - 2021-02-05
 ### Fixed:
 - fixed logical error in startup code
