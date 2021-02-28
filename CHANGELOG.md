@@ -1,3 +1,10 @@
+## 6.4.606 - 2021-02-11
+### Fixed:
+- reduced AppImage size (removed some fonts and unused files)
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-6.4.6-6](https://github.com/CollaboraOnline/online/releases/tag/cp-6.4.6-6)
+- Collabora Office tag [cp-6.4-27](https://git.libreoffice.org/core/+/refs/tags/cp-6.4-27)
+
 ## 6.4.601 - 2021-02-11
 ### Fixed:
 - remove stale lockfile
