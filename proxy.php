@@ -208,7 +208,7 @@ if ($request == '' && !$statusOnly)
 
 // If we can't get a socket open in 3 seconds when that is backed by
 // a dedicated thread, then we have a server missing in action.
-$local = @fsockopen("localhost", 9982, $errno, $errstr, 3);
+$local = @fsockopen("localhost", 9983, $errno, $errstr, 3);
 
 // Return the status and exit if it is a ?status request
 if ($statusOnly) {
@@ -225,7 +225,7 @@ if ($statusOnly) {
     } else if ($errno == 111) {
         print '{"status":"starting"}';
     } else {
-        $response = file_get_contents("http://localhost:9982/hosting/capabilities", 0, stream_context_create(["http"=>["timeout"=>1]]));
+        $response = file_get_contents("http://localhost:9983/hosting/capabilities", 0, stream_context_create(["http"=>["timeout"=>1]]));
         if ($response) {
             // Version check.
             $obj = json_decode($response);
@@ -274,7 +274,7 @@ if (!$local)
 
     $logonce = true;
     while (true) {
-        $local = @fsockopen("localhost", 9982, $errno, $errstr, 15);
+        $local = @fsockopen("localhost", 9983, $errno, $errstr, 15);
         if ($errno == 111) {
             if($logonce) {
                debug_log("Can't yet connect to socket so sleep");
