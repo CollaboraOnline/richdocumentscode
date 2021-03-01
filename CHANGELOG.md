@@ -1,6 +1,8 @@
 ## 6.4.606 - 2021-03-01
 ### Fixed:
-- reduced AppImage size (removed some fonts and unused files)
+- Reduced AppImage size (removed some fonts and unused files)
+- Support Nextcloud 21 #108
+- Use port 9983 instead of 9982 which is used by tvheadend #110
 ### AppImage version:
 - Collabora Online Development Edition (CODE) tag [cp-6.4.6-6](https://github.com/CollaboraOnline/online/releases/tag/cp-6.4.6-6)
 - Collabora Office tag [cp-6.4-27](https://git.libreoffice.org/core/+/refs/tags/cp-6.4-27)
