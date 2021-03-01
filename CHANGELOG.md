@@ -1,4 +1,4 @@
-## 6.4.606 - 2021-02-11
+## 6.4.606 - 2021-03-01
 ### Fixed:
 - reduced AppImage size (removed some fonts and unused files)
 ### AppImage version:
