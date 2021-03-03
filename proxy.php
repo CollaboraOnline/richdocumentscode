@@ -206,6 +206,17 @@ debug_log("get URI " . $request);
 if ($request == '' && !$statusOnly)
     errorExit("Missing, required req= parameter");
 
+if (startsWith($request, '/hosting/capabilities') && !isLoolwsdRunning() && file_exists('capabilities.json')) {
+    header('Content-type: application/json');
+    header('Cache-Control: no-store');
+    $capabilities = file_get_contents('capabilities.json');
+    if ($capabilities !== false) {
+        print $capabilities;
+        http_response_code(200);
+        exit();
+    }
+}
+
 // If we can't get a socket open in 3 seconds when that is backed by
 // a dedicated thread, then we have a server missing in action.
 $local = @fsockopen("localhost", 9983, $errno, $errstr, 3);

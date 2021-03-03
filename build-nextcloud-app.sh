@@ -49,6 +49,11 @@ HASH=`./${app_name}/collabora/Collabora_Online.AppImage --version-hash`
 echo "HASH: $HASH"
 sed "s/%LOOLWSD_VERSION_HASH%/$HASH/g" ../proxy.php > ${app_name}/proxy.php
 
+# Fetch capabilities from AppImage for cache
+PID_FILE="/tmp/loolwsd.pid"
+`./${app_name}/collabora/Collabora_Online.AppImage 2>/dev/null` & (sleep 3 && curl "http://localhost:9983/hosting/capabilities" --max-time 10 -o "${app_name}/capabilities.json") || (echo && echo "ERROR: Cannot fetch capabilities!" && echo)
+kill -9 `cat $PID_FILE` 2>/dev/null || (echo && echo "Failed to run Collabora Online Appimage" && echo)
+
 # check if we are building for arm64
 if [[ "$APPIMAGE_URL" =~ "arm64" ]]; then
     echo "Building for arm64"
