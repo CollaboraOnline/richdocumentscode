@@ -206,15 +206,20 @@ debug_log("get URI " . $request);
 if ($request == '' && !$statusOnly)
     errorExit("Missing, required req= parameter");
 
-if (startsWith($request, '/hosting/capabilities') && !isLoolwsdRunning() && file_exists('capabilities.json')) {
+if (startsWith($request, '/hosting/capabilities') && !isLoolwsdRunning()) {
     header('Content-type: application/json');
     header('Cache-Control: no-store');
-    $capabilities = file_get_contents('capabilities.json');
-    if ($capabilities !== false) {
-        print $capabilities;
-        http_response_code(200);
-        exit();
-    }
+
+    print '{
+        "convert-to":{"available":true},
+        "hasMobileSupport":true,
+        "hasProxyPrefix":false,
+        "hasTemplateSaveAs":false,
+        "hasTemplateSource":true
+    }';
+
+    http_response_code(200);
+    exit();
 }
 
 // If we can't get a socket open in 3 seconds when that is backed by
