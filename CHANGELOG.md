@@ -1,3 +1,11 @@
+## 6.4.607 - 2021-03-06
+### Fixed:
+- get cached hosting/capabilities (faster start)
+- Fix ARM64 app name in info.xml (fixes #99)
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-6.4.6-7](https://github.com/CollaboraOnline/online/releases/tag/cp-6.4.6-7)
+- Collabora Office tag [cp-6.4-28](https://git.libreoffice.org/core/+/refs/tags/cp-6.4-28)
+
 ## 6.4.606 - 2021-03-01
 ### Fixed:
 - Reduced AppImage size (removed some fonts and unused files)
