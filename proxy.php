@@ -59,7 +59,6 @@ function getLoolwsdPid()
 
 function isLoolwsdRunning()
 {
-    //return file_exists('/proc/' . getLoolwsdPid());
     return posix_kill(getLoolwsdPid(),0);
 }
 
@@ -101,12 +100,11 @@ function startLoolwsd()
 
 function stopLoolwsd()
 {
-    //$pid = getLoolwsdPid();
-    //if (file_exists('/proc/$pid'))
-    if (posix_kill(getLoolwsdPid(),0))    
+    $pid = getLoolwsdPid();
+    if (posix_kill($pid,0))
     {
         debug_log("Stopping the loolwsd server with pid: $pid");
-        exec("kill -s TERM $pid");
+        posix_kill($pid,SIGTERM);
     }
 }
 
