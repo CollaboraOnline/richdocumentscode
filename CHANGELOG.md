@@ -1,3 +1,10 @@
+## 6.4.608 - 2021-03-13
+### Fixed:
+- use posix_kill() instead of querying /proc
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-6.4.6-8](https://github.com/CollaboraOnline/online/releases/tag/cp-6.4.6-8)
+- Collabora Office tag [cp-6.4-28](https://git.libreoffice.org/core/+/refs/tags/cp-6.4-28)
+
 ## 6.4.607 - 2021-03-06
 ### Fixed:
 - get cached hosting/capabilities (faster start)
