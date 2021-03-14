@@ -59,7 +59,11 @@ function getLoolwsdPid()
 
 function isLoolwsdRunning()
 {
-    return posix_kill(getLoolwsdPid(),0);
+    $pid = getLoolwsdPid();
+    if ($pid == 0)
+        return 0;
+
+    return posix_kill($pid,0);
 }
 
 function startLoolwsd()
