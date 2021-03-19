@@ -34,9 +34,9 @@ class Admin implements ISettings
         $appArch = 'x86_64';
 
         $urlGenerator = \OC::$server->getURLGenerator();
-        $absoluteUrl = $urlGenerator->getAbsoluteURL('/settings/apps/app-bundles/richdocuments');
-        $absoluteUrlAdmin = $urlGenerator->getAbsoluteURL('/settings/admin/richdocuments');
-        $absoluteUrlAppInstall = $urlGenerator->getAbsoluteURL('/settings/apps/app-bundles/richdocumentscode');
+        $absoluteUrl = $urlGenerator->getAbsoluteURL('/index.php/settings/apps/app-bundles/richdocuments');
+        $absoluteUrlAdmin = $urlGenerator->getAbsoluteURL('/index.php/settings/admin/richdocuments');
+        $absoluteUrlAppInstall = $urlGenerator->getAbsoluteURL('/index.php/settings/apps/app-bundles/richdocumentscode');
 
         if ($this->getSection() == 'richdocumentscode_arm64') {
             $appArch = 'aarch64';
