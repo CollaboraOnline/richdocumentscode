@@ -21,7 +21,7 @@
 function debug_log($msg)
 {
     // Disabled for production; enable for debugging
-    // error_log("richdocumentscode (proxy.php), PID: " . getmypid() . ": $msg");
+    // error_log("richdocumentscode (proxy.php) debug, PID: " . getmypid() . ", Message: $msg");
 }
 
 function errorExit($msg)
@@ -30,7 +30,7 @@ function errorExit($msg)
     print "<h1>Socket proxy error</h1>\n";
     print "<p>Error: " . $msg . "</p>\n";
     print "</body></html>\n";
-    debug_log("Error exit: $msg");
+    error_log("richdocumentscode (proxy.php) error exit, PID: " . getmypid() . ", Message: $msg");
     http_response_code(400);
     exit();
 }
@@ -128,7 +128,7 @@ function checkLoolwsdSetup()
         return 'chmod_failed';
     else if (!is_executable($appImage))
         return 'appimage_not_executable';
-    else if (!is_callable('exec'))
+    else if (@exec('echo EXEC') != "EXEC")
         return 'exec_disabled';
 
     exec("LD_TRACE_LOADED_OBJECTS=1 $appImage", $output, $return);
@@ -289,7 +289,10 @@ if ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
 // Start the appimage if necessary
 if (!$local)
 {
-    if (!isLoolwsdRunning())
+    $err = checkLoolwsdSetup();
+    if (!empty($err))
+        errorExit($err);
+    else if (!isLoolwsdRunning())
         startLoolwsd();
 
     $logonce = true;
