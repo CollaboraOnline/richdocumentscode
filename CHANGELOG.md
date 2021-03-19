@@ -1,3 +1,11 @@
+## 6.4.702 - 2021-03-19
+### Fixed:
+- fix startup problems when exec() is disabled (#100)
+- prefix internal URLs with index.php/ (#103 and #59)
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-6.4.7-2](https://github.com/CollaboraOnline/online/releases/tag/cp-6.4.7-2)
+- Collabora Office tag [cp-6.4-30](https://git.libreoffice.org/core/+/refs/tags/cp-6.4-30)
+
 ## 6.4.608 - 2021-03-13
 ### Fixed:
 - use posix_kill() instead of querying /proc
