@@ -108,7 +108,7 @@ function stopLoolwsd()
     if (posix_kill($pid,0))
     {
         debug_log("Stopping the loolwsd server with pid: $pid");
-        posix_kill($pid,SIGTERM);
+        posix_kill($pid, 15 /*SIGTERM*/);
     }
 }
 
