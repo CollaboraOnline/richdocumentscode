@@ -1,3 +1,10 @@
+## 6.4.703 - 2021-03-20
+### Fixed:
+- fixed upgrade from previous version
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-6.4.7-3](https://github.com/CollaboraOnline/online/releases/tag/cp-6.4.7-3)
+- Collabora Office tag [cp-6.4-31](https://git.libreoffice.org/core/+/refs/tags/cp-6.4-31)
+
 ## 6.4.702 - 2021-03-19
 ### Fixed:
 - fix startup problems when exec() is disabled (#100)
