@@ -46,6 +46,7 @@ $appImage = __DIR__ . '/collabora/Collabora_Online.AppImage';
 function getLoolwsdPid()
 {
     $pidfile = '/tmp/loolwsd.pid';
+    clearstatcache();
     if (file_exists($pidfile))
     {
         $pid = rtrim(file_get_contents($pidfile));
