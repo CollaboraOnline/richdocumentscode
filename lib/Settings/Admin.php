@@ -38,7 +38,7 @@ class Admin implements ISettings
         $absoluteUrlAdmin = $urlGenerator->getAbsoluteURL('/index.php/settings/admin/richdocuments');
         $absoluteUrlAppInstall = $urlGenerator->getAbsoluteURL('/index.php/settings/apps/app-bundles/richdocumentscode');
 
-        if ($this->getSection() == 'richdocumentscode_arm64') {
+        if ($this->getSection() === 'richdocumentscode_arm64') {
             $appArch = 'aarch64';
         }
 

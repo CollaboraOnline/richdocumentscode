@@ -60,7 +60,7 @@ function getLoolwsdPid()
 function isLoolwsdRunning()
 {
     $pid = getLoolwsdPid();
-    if ($pid == 0)
+    if ($pid === 0)
         return 0;
 
     return posix_kill($pid,0);
@@ -124,11 +124,11 @@ function checkLoolwsdSetup()
         return 'not_x86_64';
     else if (!file_exists($appImage))
         return 'appimage_missing';
-    else if (fileperms($appImage) & 0744 != 0744 && !chmod($appImage, 0744))
+    else if (fileperms($appImage) & 0744 !== 0744 && !chmod($appImage, 0744))
         return 'chmod_failed';
     else if (!is_executable($appImage))
         return 'appimage_not_executable';
-    else if (@exec('echo EXEC') != "EXEC")
+    else if (@exec('echo EXEC') !== "EXEC")
         return 'exec_disabled';
 
     exec("LD_TRACE_LOADED_OBJECTS=1 $appImage", $output, $return);
@@ -180,7 +180,7 @@ if (!function_exists('getallheaders'))
 			return $headers;
 		}
 		foreach ($_SERVER as $name => $value) {
-			if (substr($name, 0, 5) == 'HTTP_') {
+			if (substr($name, 0, 5) === 'HTTP_') {
 				$headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
 			}
 		}
@@ -199,7 +199,7 @@ if (startsWith($request, 'status')) {
     $statusOnly = true;
 } else if (startsWith($request, 'req=')) {
     $request = substr($request, strlen('req='));
-    if (substr($request, 0, 1) != '/')
+    if (substr($request, 0, 1) !== '/')
         errorExit("First ?req= param should be an absolute path: '" . $request . "'");
 } else {
     errorExit("The param should be 'status' or 'req=...', but is: '" . $request . "'");
@@ -207,7 +207,7 @@ if (startsWith($request, 'status')) {
 
 debug_log("get URI " . $request);
 
-if ($request == '' && !$statusOnly)
+if ($request === '' && !$statusOnly)
     errorExit("Missing, required req= parameter");
 
 if (startsWith($request, '/hosting/capabilities') && !isLoolwsdRunning()) {
@@ -242,7 +242,7 @@ if ($statusOnly) {
             startLoolwsd();
             print '{"status":"starting"}';
         }
-    } else if ($errno == 111) {
+    } else if ($errno === 111) {
         print '{"status":"starting"}';
     } else {
         $response = file_get_contents("http://localhost:9983/hosting/capabilities", 0, stream_context_create(["http"=>["timeout"=>1]]));
@@ -251,7 +251,7 @@ if ($statusOnly) {
             $obj = json_decode($response);
             $actVer = substr($obj->{'productVersionHash'}, 0, 8); // expVer is at most 8 characters long
             $expVer = '%LOOLWSD_VERSION_HASH%';
-            if ($actVer != $expVer && $expVer != '%' . 'LOOLWSD_VERSION_HASH' . '%') { // deliberately split so that sed does not touch this during build-time
+            if ($actVer !== $expVer && $expVer !== '%' . 'LOOLWSD_VERSION_HASH' . '%') { // deliberately split so that sed does not touch this during build-time
                 // Old/unexpected server version; restart.
                 error_log("Old server found, restarting. Expected hash $expVer but found $actVer.");
                 stopLoolwsd();
@@ -298,7 +298,7 @@ if (!$local)
     $logonce = true;
     while (true) {
         $local = @fsockopen("localhost", 9983, $errno, $errstr, 15);
-        if ($errno == 111) {
+        if ($errno === 111) {
             if($logonce) {
                debug_log("Can't yet connect to socket so sleep");
                $logonce = false;
@@ -329,12 +329,12 @@ debug_log("request content: '$body'");
 
 // Oh dear - PHP's rfc1867 handling doesn't give any php://input to work with in this case.
 $multiBody = '';
-if ($body == '' && count($_FILES) > 0) {
+if ($body === '' && count($_FILES) > 0) {
     debug_log("Oh dear - PHP's rfc1867 handling doesn't give any php://input to work with");
     $type = $headers['Content-Type'];
     $boundary = trim(explode('boundary=', $type)[1]);
     foreach ($_REQUEST as $key=>$value) {
-        if ($key == 'req') {
+        if ($key === 'req') {
             continue;
         }
         $multiBody .= "--" . $boundary . "\r\n";
@@ -345,7 +345,7 @@ if ($body == '' && count($_FILES) > 0) {
         $multiBody .= "--" . $boundary . "\r\n";
         $multiBody .= "Content-Disposition: form-data; name=\"file\"; filename=\"" . $file['name'] . "\"\r\n";
         $multiBody .= "Content-Type: " . $file['type'] . "\r\n\r\n";
-        if ($file['tmp_name'] == '') {
+        if ($file['tmp_name'] === '') {
             errorExit("File " . $file['name'] . " is larger than maximum up-load file-size");
         }
         $multiBody .= file_get_contents($file['tmp_name']) . "\r\n";
@@ -360,7 +360,7 @@ fwrite($local, $realRequest . "\r\n");
 // Send the headers on ...
 foreach ($headers as $header => $value) {
     debug_log("$header: $value\n");
-    if ($multiBody != '' && $header == 'Content-Length')
+    if ($multiBody !== '' && $header === 'Content-Length')
     {
         debug_log("Substitute Content-Length of " . $value . " with " . strlen($body));
         $value = strlen($body);
@@ -383,7 +383,7 @@ do {
         echo "ERROR ! $error\n";
         debug_log("error on chunk: $error");
         break;
-    } elseif($chunk == '') {
+    } elseif($chunk === '') {
         debug_log("empty chunk last data");
         if ($parsingHeaders)
             errorExit("No content in reply from loolwsd. Is SSL enabled in error ?");
