@@ -121,15 +121,22 @@ function checkLoolwsdSetup()
 
     if (PHP_OS_FAMILY !== 'Linux')
         return 'not_linux';
-    else if (php_uname('m') !== 'x86_64')
+
+    if (php_uname('m') !== 'x86_64')
         return 'not_x86_64';
-    else if (!file_exists($appImage))
+
+    if (!file_exists($appImage))
         return 'appimage_missing';
-    else if (fileperms($appImage) & 0744 !== 0744 && !chmod($appImage, 0744))
+
+    if (fileperms($appImage) & 0744 !== 0744 && !chmod($appImage, 0744))
         return 'chmod_failed';
-    else if (!is_executable($appImage))
+
+    clearstatcache(); // effect of chmod() won't be detected without this call
+
+    if (!is_executable($appImage))
         return 'appimage_not_executable';
-    else if (@exec('echo EXEC') !== "EXEC")
+
+    if (@exec('echo EXEC') !== "EXEC")
         return 'exec_disabled';
 
     exec("LD_TRACE_LOADED_OBJECTS=1 $appImage", $output, $return);
