@@ -1,3 +1,10 @@
+## 6.4.705 - 2021-03-22
+### Fixed:
+- fixed a startup issue on RPi
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-6.4.7-3](https://github.com/CollaboraOnline/online/releases/tag/cp-6.4.7-3)
+- Collabora Office tag [cp-6.4-31](https://git.libreoffice.org/core/+/refs/tags/cp-6.4-31)
+
 ## 6.4.704 - 2021-03-21
 ### Fixed:
 - fixes related to app:check-code (fixes #118)
