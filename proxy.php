@@ -70,7 +70,6 @@ function isLoolwsdRunning()
 function startLoolwsd()
 {
     global $appImage;
-    @chmod($appImage, 0744);
 
     // Extract the AppImage if FUSE is not available
     $launchCmd = "bash -c \"( $appImage || $appImage --appimage-extract-and-run ) >/dev/null & disown\"";
@@ -128,9 +127,7 @@ function checkLoolwsdSetup()
     if (!file_exists($appImage))
         return 'appimage_missing';
 
-    if (fileperms($appImage) & 0744 !== 0744 && !chmod($appImage, 0744))
-        return 'chmod_failed';
-
+    @chmod($appImage, 0744);
     clearstatcache(); // effect of chmod() won't be detected without this call
 
     if (!is_executable($appImage))
