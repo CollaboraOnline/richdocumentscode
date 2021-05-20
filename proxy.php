@@ -43,9 +43,14 @@ set_time_limit(0);
 // Where the appimage is installed
 $appImage = __DIR__ . '/collabora/Collabora_Online.AppImage';
 
+$tmp_dir = ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : sys_get_temp_dir();
+$lockfile = "$tmp_dir/loolwsd.lock";
+$pidfile = "$tmp_dir/loolwsd.pid";
+
 function getLoolwsdPid()
 {
-    $pidfile = '/tmp/loolwsd.pid';
+    global $pidfile;
+
     clearstatcache();
     if (file_exists($pidfile))
     {
@@ -70,22 +75,24 @@ function isLoolwsdRunning()
 function startLoolwsd()
 {
     global $appImage;
+    global $pidfile;
+    global $lockfile;
 
     // Extract the AppImage if FUSE is not available
-    $launchCmd = "bash -c \"( $appImage || $appImage --appimage-extract-and-run ) >/dev/null & disown\"";
+    $launchCmd = "bash -c \"( $appImage --pidfile=$pidfile || $appImage --appimage-extract-and-run --pidfile=$pidfile) >/dev/null & disown\"";
 
     // Remove stale lock file (just in case)
-    if (file_exists('/tmp/loolwsd.lock'))
-        if (time() - filectime('/tmp/loolwsd.lock') > 60 * 5)
-            unlink('/tmp/loolwsd.lock');
+    if (file_exists("$lockfile"))
+        if (time() - filectime("$lockfile") > 60 * 5)
+            unlink("$lockfile");
 
     // Prevent second start
-    $lock = @fopen("/tmp/loolwsd.lock", "x");
+    $lock = @fopen("$lockfile", "x");
     if ($lock)
     {
         // We start a new server, we don't need stale pidfile around
-        if (file_exists('/tmp/loolwsd.pid'))
-            unlink('/tmp/loolwsd.pid');
+        if (file_exists("$pidfile"))
+            unlink("$pidfile");
 
         debug_log("Launch the loolwsd server: $launchCmd");
         exec($launchCmd, $output, $return);
@@ -98,8 +105,8 @@ function startLoolwsd()
     while (!isLoolwsdRunning())
         sleep(1);
 
-    if (file_exists('/tmp/loolwsd.lock'))
-        unlink('/tmp/loolwsd.lock');
+    if (file_exists("$lockfile"))
+        unlink("$lockfile");
 }
 
 function stopLoolwsd()
