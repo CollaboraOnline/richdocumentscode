@@ -1,3 +1,10 @@
+## 6.4.1002 - 2021-07-05
+### Fixed:
+- Translation updates
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-6.4.10-2](https://github.com/CollaboraOnline/online/releases/tag/cp-6.4.10-2)
+- Collabora Office tag [cp-6.4-43](https://git.libreoffice.org/core/+/refs/tags/cp-6.4-43)
+
 ## 6.4.806 - 2021-05-20
 ### Fixed:
 - Use 'upload_tmp_dir' when available for PID and LOCK files #132
