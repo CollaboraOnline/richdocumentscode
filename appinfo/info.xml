@@ -24,7 +24,7 @@ sudo -u wwwrun php -d memory_limit=512M ./occ app:update --all
 
 Of course, alternatively you could increase memory usage and PHP time-outs by default, see the [Nextcloud documentation.](https://docs.nextcloud.com/server/latest/admin_manual/configuration_files/big_file_upload_configuration.html?highlight=php%20timeout#configuring-your-web-server)
 ]]></description>
-    <version>6.4.1002</version>
+    <version>6.4.1003</version>
     <licence>apache</licence>
     <author>Collabora Productivity</author>
     <namespace>RichDocumentsCODE</namespace>
