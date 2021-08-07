@@ -11,7 +11,7 @@ OC.L10N.register(
     "You have the Collabora Online app enabled. For further information and configuration, please check:" : "A Collabora Online alkalmazás engedélyezve van. A további információkért és beállítási lehetőségekért ugorjon ide:",
     "Settings > Administration > Collabora Online" : "Beállítások > Adminisztráció > Collabora Online",
     "Built-in CODE server is designed to work with the usual Collabora Online app." : "A beépített CODE-kiszolgáló a szokásos Collabora Online alkalmazással együtt használható.",
-    "Install it from the Nextcloud App Store." : "Telepítse a Nexcloud App Store-ból.",
+    "Install it from the Nextcloud App Store." : "Telepítse a Nextcloud alkalmazásboltból.",
     "An error occurred while trying to check your Collabora Online app installation. You may report this error\n                with the tag: <em>richdocuments-EnabledCheckFailed</em>" : "Hiba történt a Collabora Online alkalmazás telepítésének ellenőrzése közben. A hibát bejelentheti a\n                <em>richdocuments-EnabledCheckFailed</em> címkével."
 },
 "nplurals=2; plural=(n != 1);");
