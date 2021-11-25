@@ -111,7 +111,7 @@ function startLoolwsd()
 
         if ($return) {
             debug_log("Failed to launch server at $appImage.");
-        )
+        }
 
         fclose($lock);
     }
@@ -122,7 +122,7 @@ function startLoolwsd()
 
     if (file_exists($lockfile)) {
         unlink($lockfile);
-    )
+    }
 }
 
 function stopLoolwsd()
