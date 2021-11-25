@@ -106,7 +106,7 @@
 
 ## 6.4.403 - 2021-02-01
 ### Fixed:
-- do not start loolwsd if it is started already (better fix)
+- do not start coolwsd if it is started already (better fix)
 - fix crash with libfontconfig in Nextcloud snap
 ### AppImage version:
 - Collabora Online Development Edition (CODE) tag [cp-6.4.4-3](https://github.com/CollaboraOnline/online/releases/tag/cp-6.4.4-3)
@@ -114,7 +114,7 @@
 
 ## 6.4.303 - 2021-01-17
 ### Fixed:
-- do not start loolwsd if it is started already
+- do not start coolwsd if it is started already
 ### AppImage version:
 - Collabora Online Development Edition (CODE) tag [cp-6.4.3-3](https://github.com/CollaboraOnline/online/releases/tag/cp-6.4.3-3)
 - Collabora Office tag [cp-6.4-19](https://git.libreoffice.org/core/+/refs/tags/cp-6.4-19)
@@ -249,7 +249,7 @@
 - Re-try with --appimage-extract-and-run when normal run of AppImage fails.
 - Check for fontconfig in proxy.php?status
 - Show icons on mobile user interface
-- Do not check for root user when started with --disable-lool-user-checking (snap)
+- Do not check for root user when started with --disable-cool-user-checking (snap)
 - Disable seccomp for AppImage
 - Make native drawing of FormattedField work [tdf#133498](https://bugs.documentfoundation.org/show_bug.cgi?id=133498)
 - Don't enter the OLE editing mode right after inserting a chart.

@@ -44,10 +44,10 @@ test -d "${app_name}/collabora" || mkdir -p "${app_name}/collabora"
 test -f "${app_name}/collabora/Collabora_Online.AppImage" || curl "$APPIMAGE_URL" -o "${app_name}/collabora/Collabora_Online.AppImage"
 chmod a+x "${app_name}/collabora/Collabora_Online.AppImage"
 
-# Create proxy.php and get the version hash from loolwsd into it
+# Create proxy.php and get the version hash from coolwsd into it
 HASH=`./${app_name}/collabora/Collabora_Online.AppImage --version-hash`
 echo "HASH: $HASH"
-sed "s/%LOOLWSD_VERSION_HASH%/$HASH/g" ../proxy.php > ${app_name}/proxy.php
+sed "s/%COOLWSD_VERSION_HASH%/$HASH/g" ../proxy.php > ${app_name}/proxy.php
 
 # check if we are building for arm64
 if [[ "$APPIMAGE_URL" =~ "arm64" ]]; then

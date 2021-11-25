@@ -16,7 +16,7 @@
  */
 
 // test with:
-// http://localhost/richproxy/proxy.php?req=/loleaflet/dist/loleaflet.html?file_path=file:///opt/libreoffice/online/test/data/hello-world.odt
+// http://localhost/richproxy/proxy.php?req=/browser/dist/cool.html?file_path=file:///opt/libreoffice/online/test/data/hello-world.odt
 
 function debug_log($msg)
 {
@@ -44,10 +44,10 @@ set_time_limit(0);
 $appImage = __DIR__ . '/collabora/Collabora_Online.AppImage';
 
 $tmp_dir = ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : sys_get_temp_dir();
-$lockfile = "$tmp_dir/loolwsd.lock";
-$pidfile = "$tmp_dir/loolwsd.pid";
+$lockfile = "$tmp_dir/coolwsd.lock";
+$pidfile = "$tmp_dir/coolwsd.pid";
 
-function getLoolwsdPid()
+function getCoolwsdPid()
 {
     global $pidfile;
 
@@ -55,24 +55,24 @@ function getLoolwsdPid()
     if (file_exists($pidfile))
     {
         $pid = rtrim(file_get_contents($pidfile));
-        debug_log("Loolwsd server running with pid: " . $pid);
+        debug_log("Coolwsd server running with pid: " . $pid);
         return $pid;
     }
 
-    debug_log("Loolwsd server is not running.");
+    debug_log("Coolwsd server is not running.");
     return 0;
 }
 
-function isLoolwsdRunning()
+function isCoolwsdRunning()
 {
-    $pid = getLoolwsdPid();
+    $pid = getCoolwsdPid();
     if ($pid === 0)
         return 0;
 
     return posix_kill($pid,0);
 }
 
-function startLoolwsd()
+function startCoolwsd()
 {
     global $appImage;
     global $pidfile;
@@ -94,7 +94,7 @@ function startLoolwsd()
         if (file_exists("$pidfile"))
             unlink("$pidfile");
 
-        debug_log("Launch the loolwsd server: $launchCmd");
+        debug_log("Launch the coolwsd server: $launchCmd");
         exec($launchCmd, $output, $return);
         if ($return)
             debug_log("Failed to launch server at $appImage.");
@@ -102,26 +102,26 @@ function startLoolwsd()
         fclose($lock);
     }
 
-    while (!isLoolwsdRunning())
+    while (!isCoolwsdRunning())
         sleep(1);
 
     if (file_exists("$lockfile"))
         unlink("$lockfile");
 }
 
-function stopLoolwsd()
+function stopCoolwsd()
 {
-    $pid = getLoolwsdPid();
+    $pid = getCoolwsdPid();
     if (posix_kill($pid,0))
     {
-        debug_log("Stopping the loolwsd server with pid: $pid");
+        debug_log("Stopping the coolwsd server with pid: $pid");
         posix_kill($pid, 15 /*SIGTERM*/);
     }
 }
 
-// Check that the setup is suitable for running the loolwsd.
+// Check that the setup is suitable for running the coolwsd.
 // Returns the error ID if we find a problem.
-function checkLoolwsdSetup()
+function checkCoolwsdSetup()
 {
     global $appImage;
 
@@ -222,7 +222,7 @@ debug_log("get URI " . $request);
 if ($request === '' && !$statusOnly)
     errorExit("Missing, required req= parameter");
 
-if (startsWith($request, '/hosting/capabilities') && !isLoolwsdRunning()) {
+if (startsWith($request, '/hosting/capabilities') && !isCoolwsdRunning()) {
     header('Content-type: application/json');
     header('Cache-Control: no-store');
 
@@ -247,11 +247,11 @@ if ($statusOnly) {
     header('Content-type: application/json');
     header('Cache-Control: no-store');
     if (!$local) {
-        $err = checkLoolwsdSetup();
+        $err = checkCoolwsdSetup();
         if (!empty($err))
             print '{"status":"error","error":"' . $err . '"}';
-        else if (!isLoolwsdRunning()) {
-            startLoolwsd();
+        else if (!isCoolwsdRunning()) {
+            startCoolwsd();
             print '{"status":"starting"}';
         }
     } else if ($errno === 111) {
@@ -262,18 +262,18 @@ if ($statusOnly) {
             // Version check.
             $obj = json_decode($response);
             $actVer = substr($obj->{'productVersionHash'}, 0, 8); // expVer is at most 8 characters long
-            $expVer = '%LOOLWSD_VERSION_HASH%';
-            if ($actVer !== $expVer && $expVer !== '%' . 'LOOLWSD_VERSION_HASH' . '%') { // deliberately split so that sed does not touch this during build-time
+            $expVer = '%COOLWSD_VERSION_HASH%';
+            if ($actVer !== $expVer && $expVer !== '%' . 'COOLWSD_VERSION_HASH' . '%') { // deliberately split so that sed does not touch this during build-time
                 // Old/unexpected server version; restart.
                 error_log("Old server found, restarting. Expected hash $expVer but found $actVer.");
-                stopLoolwsd();
+                stopCoolwsd();
                 // wait 10 seconds max
-                for ($i = 0; isLoolwsdRunning() && ($i < 10); $i++)
+                for ($i = 0; isCoolwsdRunning() && ($i < 10); $i++)
                     sleep(1);
 
                 // somebody else might have restarted it in the meantime
-                if (!isLoolwsdRunning())
-                    startLoolwsd();
+                if (!isCoolwsdRunning())
+                    startCoolwsd();
 
                 print '{"status":"restarting"}';
             }
@@ -301,11 +301,11 @@ if ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
 // Start the appimage if necessary
 if (!$local)
 {
-    $err = checkLoolwsdSetup();
+    $err = checkCoolwsdSetup();
     if (!empty($err))
         errorExit($err);
-    else if (!isLoolwsdRunning())
-        startLoolwsd();
+    else if (!isCoolwsdRunning())
+        startCoolwsd();
 
     $logonce = true;
     while (true) {
@@ -398,7 +398,7 @@ do {
     } elseif($chunk === '') {
         debug_log("empty chunk last data");
         if ($parsingHeaders)
-            errorExit("No content in reply from loolwsd. Is SSL enabled in error ?");
+            errorExit("No content in reply from coolwsd. Is SSL enabled in error ?");
         break;
     } elseif ($parsingHeaders) {
         $rest .= $chunk;
