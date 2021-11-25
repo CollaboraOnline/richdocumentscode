@@ -38,14 +38,16 @@ function errorExit($msg)
 debug_log('Proxy v1');
 
 // Let the webserver time us out in its own good time.
-set_time_limit(0);
+if (function_exists('set_time_limit')) {
+    set_time_limit(0);
+}
 
 // Where the appimage is installed
 $appImage = __DIR__ . '/collabora/Collabora_Online.AppImage';
 
 $tmp_dir = ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : sys_get_temp_dir();
-$lockfile = "$tmp_dir/loolwsd.lock";
-$pidfile = "$tmp_dir/loolwsd.pid";
+$lockfile = $tmp_dir . '/loolwsd.lock';
+$pidfile = $tmp_dir . '/loolwsd.pid';
 
 function getLoolwsdPid()
 {
@@ -60,16 +62,18 @@ function getLoolwsdPid()
     }
 
     debug_log("Loolwsd server is not running.");
+
     return 0;
 }
 
 function isLoolwsdRunning()
 {
     $pid = getLoolwsdPid();
-    if ($pid === 0)
+    if ($pid === 0) {
         return 0;
+    }
 
-    return posix_kill($pid,0);
+    return posix_kill($pid, 0);
 }
 
 function startLoolwsd()
@@ -82,37 +86,49 @@ function startLoolwsd()
     $launchCmd = "bash -c \"( $appImage --pidfile=$pidfile || $appImage --appimage-extract-and-run --pidfile=$pidfile) >/dev/null & disown\"";
 
     // Remove stale lock file (just in case)
-    if (file_exists("$lockfile"))
-        if (time() - filectime("$lockfile") > 60 * 5)
-            unlink("$lockfile");
+    if (file_exists($lockfile)) {
+        if (time() - filectime($lockfile) > 60 * 5) {
+            unlink($lockfile);
+        }
+    }
 
     // Prevent second start
-    $lock = @fopen("$lockfile", "x");
+    if (function_exists('fopen')) {
+        $lock = fopen($lockfile, "x");
+    }
+
     if ($lock)
     {
         // We start a new server, we don't need stale pidfile around
-        if (file_exists("$pidfile"))
-            unlink("$pidfile");
+        if (file_exists($pidfile)) {
+            unlink($pidfile);
+        }
 
         debug_log("Launch the loolwsd server: $launchCmd");
-        exec($launchCmd, $output, $return);
-        if ($return)
+        if (function_exists('exec')) {
+            exec($launchCmd, $output, $return);
+        }
+
+        if ($return) {
             debug_log("Failed to launch server at $appImage.");
+        )
 
         fclose($lock);
     }
 
-    while (!isLoolwsdRunning())
+    while (!isLoolwsdRunning()) {
         sleep(1);
+    }
 
-    if (file_exists("$lockfile"))
-        unlink("$lockfile");
+    if (file_exists($lockfile)) {
+        unlink($lockfile);
+    )
 }
 
 function stopLoolwsd()
 {
     $pid = getLoolwsdPid();
-    if (posix_kill($pid,0))
+    if (posix_kill($pid, 0))
     {
         debug_log("Stopping the loolwsd server with pid: $pid");
         posix_kill($pid, 15 /*SIGTERM*/);
@@ -125,31 +141,40 @@ function checkLoolwsdSetup()
 {
     global $appImage;
 
-    if (PHP_OS_FAMILY !== 'Linux')
+    if (PHP_OS_FAMILY !== 'Linux') {
         return 'not_linux';
+    }
 
-    if (php_uname('m') !== 'x86_64')
+    if (php_uname('m') !== 'x86_64') {
         return 'not_x86_64';
+    }
 
-    if (!file_exists($appImage))
+    if (!file_exists($appImage)) {
         return 'appimage_missing';
+    }
 
-    @chmod($appImage, 0744);
-    clearstatcache(); // effect of chmod() won't be detected without this call
+    if (function_exists('chmod')) {
+        chmod($appImage, 0744);
+        clearstatcache(); // effect of chmod() won't be detected without this call
+    }
 
-    if (!is_executable($appImage))
+    if (!is_executable($appImage)) {
         return 'appimage_not_executable';
+    }
 
-    if (@exec('echo EXEC') !== "EXEC")
+    if (!function_exists('exec')) {
         return 'exec_disabled';
+    }
 
     exec("LD_TRACE_LOADED_OBJECTS=1 $appImage", $output, $return);
-    if ($return)
+    if ($return) {
         return 'no_glibc';
+    }
 
     exec('( /sbin/ldconfig -p || scanelf -l ) | grep fontconfig > /dev/null 2>&1', $output, $return);
-    if ($return)
+    if ($return) {
         return 'no_fontconfig';
+    }
 
     return '';
 }
@@ -174,6 +199,7 @@ function parseLastHeader(&$chunk)
     }
     // keep looking for the next header.
     $chunk = substr($chunk, $chop);
+
     return $endOfHeaders;
 }
 
@@ -183,25 +209,26 @@ function startsWith($string, $with) {
 
 if (!function_exists('getallheaders'))
 {
-	// polyfill, e.g. on PHP 7.2 setups with nginx.
-	// Can be removed when 7.2 becomes unsupported
-	function getallheaders()
-	{
-		$headers = [];
-		if (!is_array($_SERVER)) {
-			return $headers;
-		}
-		foreach ($_SERVER as $name => $value) {
-			if (substr($name, 0, 5) === 'HTTP_') {
-				$headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
-			}
-		}
-		return $headers;
-	}
+    // polyfill, e.g. on PHP 7.2 setups with nginx.
+    // Can be removed when 7.2 becomes unsupported
+    function getallheaders()
+    {
+        $headers = [];
+        if (!is_array($_SERVER)) {
+            return $headers;
+        }
+        foreach ($_SERVER as $name => $value) {
+            if (substr($name, 0, 5) === 'HTTP_') {
+                $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
+            }
+        }
+        return $headers;
+    }
 }
 
 // avoid unwanted escaping of req= parameter
 $request = $_SERVER['QUERY_STRING'];
+
 // only asking for status?
 $statusOnly = false;
 
@@ -209,18 +236,20 @@ $statusOnly = false;
 if (startsWith($request, 'status')) {
     $request = '';
     $statusOnly = true;
-} else if (startsWith($request, 'req=')) {
+} elseif (startsWith($request, 'req=')) {
     $request = substr($request, strlen('req='));
-    if (substr($request, 0, 1) !== '/')
+    if (substr($request, 0, 1) !== '/') {
         errorExit("First ?req= param should be an absolute path: '" . $request . "'");
+    }
 } else {
     errorExit("The param should be 'status' or 'req=...', but is: '" . $request . "'");
 }
 
 debug_log("get URI " . $request);
 
-if ($request === '' && !$statusOnly)
+if ($request === '' && !$statusOnly) {
     errorExit("Missing, required req= parameter");
+}
 
 if (startsWith($request, '/hosting/capabilities') && !isLoolwsdRunning()) {
     header('Content-type: application/json');
@@ -240,7 +269,9 @@ if (startsWith($request, '/hosting/capabilities') && !isLoolwsdRunning()) {
 
 // If we can't get a socket open in 3 seconds when that is backed by
 // a dedicated thread, then we have a server missing in action.
-$local = @fsockopen("localhost", 9983, $errno, $errstr, 3);
+if (function_exists('fsockopen')) {
+    $local = fsockopen('localhost', 9983, $errno, $errstr, 3);
+}
 
 // Return the status and exit if it is a ?status request
 if ($statusOnly) {
@@ -248,16 +279,16 @@ if ($statusOnly) {
     header('Cache-Control: no-store');
     if (!$local) {
         $err = checkLoolwsdSetup();
-        if (!empty($err))
+        if (!empty($err)) {
             print '{"status":"error","error":"' . $err . '"}';
-        else if (!isLoolwsdRunning()) {
+        } elseif (!isLoolwsdRunning()) {
             startLoolwsd();
             print '{"status":"starting"}';
         }
-    } else if ($errno === 111) {
+    } elseif ($errno === 111) {
         print '{"status":"starting"}';
     } else {
-        $response = file_get_contents("http://localhost:9983/hosting/capabilities", 0, stream_context_create(["http"=>["timeout"=>1]]));
+        $response = file_get_contents("http://localhost:9983/hosting/capabilities", 0, stream_context_create(["http" => ["timeout" => 1]]));
         if ($response) {
             // Version check.
             $obj = json_decode($response);
@@ -268,30 +299,35 @@ if ($statusOnly) {
                 error_log("Old server found, restarting. Expected hash $expVer but found $actVer.");
                 stopLoolwsd();
                 // wait 10 seconds max
-                for ($i = 0; isLoolwsdRunning() && ($i < 10); $i++)
+                for ($i = 0; isLoolwsdRunning() && ($i < 10); $i++) {
                     sleep(1);
+                }
 
                 // somebody else might have restarted it in the meantime
-                if (!isLoolwsdRunning())
+                if (!isLoolwsdRunning()) {
                     startLoolwsd();
+                }
 
                 print '{"status":"restarting"}';
             }
             else
                 print '{"status":"OK"}';
-        }
-        else
+            }
+        } else {
             print '{"status":"starting"}';
+        }
+
         fclose($local);
     }
 
     http_response_code(200);
     exit();
 }
+
 // URL into this server of the proxy script.
 if ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-	|| (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https' )
-	|| (isset($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on')
+    || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https' )
+    || (isset($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on')
 ) {
     $proxyURL = "https://";
 } else {
@@ -302,14 +338,17 @@ if ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
 if (!$local)
 {
     $err = checkLoolwsdSetup();
-    if (!empty($err))
+    if (!empty($err)) {
         errorExit($err);
-    else if (!isLoolwsdRunning())
+    } elseif (!isLoolwsdRunning()) {
         startLoolwsd();
+    }
 
     $logonce = true;
     while (true) {
-        $local = @fsockopen("localhost", 9983, $errno, $errstr, 15);
+        if (function_exists('fsockopen')) {
+            $local = fsockopen('localhost', 9983, $errno, $errstr, 15);
+        }
         if ($errno === 111) {
             if($logonce) {
                debug_log("Can't yet connect to socket so sleep");
@@ -345,6 +384,7 @@ if ($body === '' && count($_FILES) > 0) {
     debug_log("Oh dear - PHP's rfc1867 handling doesn't give any php://input to work with");
     $type = $headers['Content-Type'];
     $boundary = trim(explode('boundary=', $type)[1]);
+
     foreach ($_REQUEST as $key=>$value) {
         if ($key === 'req') {
             continue;
@@ -353,6 +393,7 @@ if ($body === '' && count($_FILES) > 0) {
         $multiBody .= "Content-Disposition: form-data; name=\"$key\"\r\n\r\n";
         $multiBody .= "$value\r\n";
     }
+
     foreach ($_FILES as $file) {
         $multiBody .= "--" . $boundary . "\r\n";
         $multiBody .= "Content-Disposition: form-data; name=\"file\"; filename=\"" . $file['name'] . "\"\r\n";
@@ -362,6 +403,7 @@ if ($body === '' && count($_FILES) > 0) {
         }
         $multiBody .= file_get_contents($file['tmp_name']) . "\r\n";
     }
+
     $multiBody .= "--" . $boundary . "--\r\n";
     $body = $multiBody;
 
@@ -369,6 +411,7 @@ if ($body === '' && count($_FILES) > 0) {
 }
 
 fwrite($local, $realRequest . "\r\n");
+
 // Send the headers on ...
 foreach ($headers as $header => $value) {
     debug_log("$header: $value\n");
@@ -388,24 +431,25 @@ debug_log("waiting for response");
 
 $rest = '';
 $parsingHeaders = true;
+
 do {
     $chunk = fread($local, 65536);
-    if($chunk === false) {
+    if ($chunk === false) {
         $error = socket_last_error($local);
         echo "ERROR ! $error\n";
         debug_log("error on chunk: $error");
         break;
-    } elseif($chunk === '') {
+    } elseif ($chunk === '') {
         debug_log("empty chunk last data");
-        if ($parsingHeaders)
+        if ($parsingHeaders) {
             errorExit("No content in reply from loolwsd. Is SSL enabled in error ?");
-        break;
+            break;
+        }
     } elseif ($parsingHeaders) {
         $rest .= $chunk;
         debug_log("build headers to: $rest\n");
         if (parseLastHeader($rest)) {
             $parsingHeaders = false;
-
             $extOut = fopen("php://output", "w") or errorExit("fundamental error opening PHP output");
             fwrite($extOut, $rest);
             $rest = '';
@@ -417,7 +461,5 @@ do {
     }
 } while(true);
 
-debug_log("closing local socket");
+debug_log("Closing local socket");
 fclose($local);
-
-?>
