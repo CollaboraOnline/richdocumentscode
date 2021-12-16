@@ -1,3 +1,11 @@
+## 21.11.6 - 2021-12-16
+### Fixes:
+- Theming
+- A few crashers
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-21.11.0-6](https://github.com/CollaboraOnline/online/releases/tag/cp-21.11.0-6)
+- Collabora Office tag [cp-21.06.10-1](https://git.libreoffice.org/core/+/refs/tags/cp-21.06.10-1)
+
 ## 21.11.4 - 2021-12-03
 ### Major new release based on CODE 21.11
 - See the [release announcement](https://www.collaboraoffice.com/press-releases/code-21-11-delivers-key-features-for-secure-easier-and-faster-online-document-collaboration/)
