@@ -14,4 +14,4 @@ OC.L10N.register(
     "Install it from the Nextcloud App Store." : "Instálalo desde la tienda de apps de Nextcloud..",
     "An error occurred while trying to check your Collabora Online app installation. You may report this error\n                with the tag: <em>richdocuments-EnabledCheckFailed</em>" : "Se ha encontrado un error mientras que verificaba la instalación de su app Collabora Online. Puede informar acerca de este error\ncon la etiqueta: <em>richdocuments-EnabledCheckFailed</em>"
 },
-"nplurals=2; plural=(n != 1);");
+"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");
