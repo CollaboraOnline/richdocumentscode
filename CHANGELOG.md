@@ -1,3 +1,9 @@
+## 21.11.502 - 2022-06-12
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-21.11.5-2](https://github.com/CollaboraOnline/online/releases/tag/cp-21.11.5-2)
+- Collabora Office tag [cp-21.06.31-1](https://git.libreoffice.org/core/+/refs/tags/cp-21.06.31-1)
+- See also: [CODE 21.11 release notes](https://www.collaboraoffice.com/code-21-11-release-notes/)
+
 ## 21.11.402 - 2022-05-02
 ### AppImage version:
 - Collabora Online Development Edition (CODE) tag [cp-21.11.4-2](https://github.com/CollaboraOnline/online/releases/tag/cp-21.11.4-2)
