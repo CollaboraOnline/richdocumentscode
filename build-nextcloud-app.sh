@@ -37,6 +37,7 @@ test -d "${app_name}" || mkdir -p "${app_name}"
 
 cp -ra ../appinfo ../l10n ../lib ../templates ${app_name}/
 cp -ra ../img ${app_name}/
+cp -ra ../images ${app_name}/
 cp -a ../CHANGELOG.md ../LICENSE ../NOTICES ${app_name}/
 
 # get the appimage
