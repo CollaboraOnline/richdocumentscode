@@ -12,6 +12,6 @@ OC.L10N.register(
     "Settings > Administration > Collabora Online" : "Einstellungen > Administration > Collabora Online",
     "Built-in CODE server is designed to work with the usual Collabora Online app." : "Der eingebaute CODE-Server funktioniert mit der üblichen Collabora Online-App.",
     "Install it from the Nextcloud App Store." : "Installiere es aus dem App Store.",
-    "An error occurred while trying to check your Collabora Online app installation. You may report this error\n                with the tag: <em>richdocuments-EnabledCheckFailed</em>" : "Beim Versuch die Installation deiner Collabora Online-App zu überprüfen, ist ein Fehler aufgetreten. Du kannst diesen Fehler melden\n                mit der Markierung:<em> richdocuments-EnabledCheckFailed</em>"
+    "An error occurred while trying to check your Collabora Online app installation. You may report this error\n                with the tag: <em>richdocuments-EnabledCheckFailed</em>" : "Es ist ein Fehler beim Prüfen der Installation deiner Collabora Online-App. Du kannst diesen Fehler melden\n                mit der Markierung:<em> richdocuments-EnabledCheckFailed</em>"
 },
 "nplurals=2; plural=(n != 1);");
