@@ -141,7 +141,7 @@ function checkCoolwsdSetup()
         return 'appimage_not_executable';
 
     $disabledFunctions = explode(',', ini_get('disable_functions'));
-    if (!in_array('exec', $disabledFunctions) || @exec('echo EXEC') !== "EXEC")
+    if (in_array('exec', $disabledFunctions) || @exec('echo EXEC') !== "EXEC")
         return 'exec_disabled';
 
     exec("LD_TRACE_LOADED_OBJECTS=1 $appImage", $output, $return);
