@@ -1,3 +1,9 @@
+## 22.5.802 - 2022-11-10
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-22.05.8-2](https://github.com/CollaboraOnline/online/releases/tag/cp-22.05.8-2)
+- Collabora Office tag [cp-22.05.8-2](https://git.libreoffice.org/core/+/refs/tags/cp-22.05.8-2)
+- See also: [CODE 22.05 release notes](https://www.collaboraoffice.com/code-22-05-release-notes/)
+
 ## 22.5.701 - 2022-10-22
 ### AppImage version:
 - Compatible with Nextcloud 25
