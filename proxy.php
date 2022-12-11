@@ -344,7 +344,7 @@ debug_log("request content: '$body'");
 $multiBody = '';
 if ($body === '' && count($_FILES) > 0) {
     debug_log("Oh dear - PHP's rfc1867 handling doesn't give any php://input to work with");
-    $type = $headers['Content-Type'];
+    $type = isset($headers['Content-Type']) ? $headers['Content-Type'] : $headers['content-type'];
     $boundary = trim(explode('boundary=', $type)[1]);
     foreach ($_REQUEST as $key=>$value) {
         if ($key === 'req') {
