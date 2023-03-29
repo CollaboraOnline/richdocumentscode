@@ -392,7 +392,7 @@ $parsingHeaders = true;
 do {
     $chunk = fread($local, 65536);
     if($chunk === false) {
-        $error = socket_last_error($local);
+        $error = implode(' ', error_get_last());
         echo "ERROR ! $error\n";
         debug_log("error on chunk: $error");
         break;
