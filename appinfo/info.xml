@@ -24,7 +24,7 @@ sudo -u wwwrun php -d memory_limit=512M ./occ app:update --all
 
 Of course, alternatively you could increase memory usage and PHP time-outs by default, see the [Nextcloud documentation.](https://docs.nextcloud.com/server/latest/admin_manual/configuration_files/big_file_upload_configuration.html?highlight=php%20timeout#configuring-your-web-server)
 ]]></description>
-    <version>22.5.1301</version>
+    <version>23.5.4</version>
     <licence>apache</licence>
     <author>Collabora Productivity</author>
     <namespace>RichDocumentsCODE</namespace>
@@ -44,7 +44,7 @@ Of course, alternatively you could increase memory usage and PHP time-outs by de
     <screenshot>https://www.collaboraoffice.com/downloads/nextcloud/richdocumentscode/collabora-online-screenshot-4.png</screenshot>
     <screenshot>https://www.collaboraoffice.com/downloads/nextcloud/richdocumentscode/collabora-online-screenshot-5.png</screenshot>
     <dependencies>
-        <nextcloud min-version="19" max-version="26"/>
+        <nextcloud min-version="19" max-version="27"/>
         <architecture>x86_64</architecture>
     </dependencies>
     <settings>

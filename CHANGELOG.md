@@ -1,3 +1,9 @@
+## 23.5.4 - 2023-06-11
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-23.05.0-4](https://github.com/CollaboraOnline/online/releases/tag/cp-23.05.0-4)
+- Collabora Office tag [cp-23.05.0-4](https://git.libreoffice.org/core/+/refs/tags/cp-23.05.0-4)
+- See also: [CODE 23.05 release notes](https://www.collaboraoffice.com/code-23-05-release-notes/)
+
 ## 22.5.1301 - 2023-04-14
 ### AppImage version:
 - Collabora Online Development Edition (CODE) tag [cp-22.05.13-1](https://github.com/CollaboraOnline/online/releases/tag/cp-22.05.13-1)
