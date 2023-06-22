@@ -78,8 +78,15 @@ function startCoolwsd()
     global $pidfile;
     global $lockfile;
 
+    // Remote font config URL (HTTPS only)
+    $remoteFontConfig = "";
+    if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+    {
+        $remoteFontConfig = "--o:remote_font_config.url=https://" . $_SERVER['HTTP_HOST'] . preg_replace("/richdocumentscode.*$/", "richdocuments/settings/fonts.json", _SERVER['REQUEST_URI']);
+    }
+
     // Extract the AppImage if FUSE is not available
-    $launchCmd = "bash -c \"( $appImage --pidfile=$pidfile || $appImage --appimage-extract-and-run --pidfile=$pidfile) >/dev/null & disown\"";
+    $launchCmd = "bash -c \"( $appImage $remoteFontConfig --pidfile=$pidfile || $appImage --appimage-extract-and-run $remoteFontConfig --pidfile=$pidfile) >/dev/null & disown\"";
 
     // Remove stale lock file (just in case)
     if (file_exists("$lockfile"))
