@@ -1,3 +1,12 @@
+## 23.5.102 - 2023-06-28
+- Drop support of PHP 7.2
+- Support only maintained versions of Nextcloud: 25, 26, 27
+- Use the remote font config URL from Nextcloud
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-23.05.1-2](https://github.com/CollaboraOnline/online/releases/tag/cp-23.05.1-2)
+- Collabora Office tag [cp-23.05.1-2](https://git.libreoffice.org/core/+/refs/tags/cp-23.05.1-2)
+- See also: [CODE 23.05 release notes](https://www.collaboraoffice.com/code-23-05-release-notes/)
+
 ## 23.5.5 - 2023-06-12
 - This is a major new release based on Collabora Online Development Edition 23.05
 ### AppImage version:
