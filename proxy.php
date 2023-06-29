@@ -82,7 +82,7 @@ function startCoolwsd()
     $remoteFontConfig = "";
     if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
     {
-        $remoteFontConfig = "--o:remote_font_config.url=https://" . $_SERVER['HTTP_HOST'] . preg_replace("/richdocumentscode.*$/", "richdocuments/settings/fonts.json", _SERVER['REQUEST_URI']);
+        $remoteFontConfig = "--o:remote_font_config.url=https://" . $_SERVER['HTTP_HOST'] . preg_replace("/richdocumentscode.*$/", "richdocuments/settings/fonts.json", $_SERVER['REQUEST_URI']);
     }
 
     // Extract the AppImage if FUSE is not available
