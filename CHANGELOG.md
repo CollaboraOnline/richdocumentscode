@@ -1,7 +1,13 @@
+## 23.5.202 - 2023-08-06
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-23.05.2-2](https://github.com/CollaboraOnline/online/releases/tag/cp-23.05.2-2)
+- Collabora Office tag [cp-23.05.2-2](https://git.libreoffice.org/core/+/refs/tags/cp-23.05.2-2)
+- See also: [CODE 23.05 release notes](https://www.collaboraoffice.com/code-23-05-release-notes/)
+
 ## 23.5.104 - 2023-07-11
 - Fixed https://github.com/CollaboraOnline/online/issues/6803 made snackbar non-modal
 ### AppImage version:
-- Collabora Online Development Edition (CODE) tag [cp-23.05.1-2](https://github.com/CollaboraOnline/online/releases/tag/cp-23.05.1-3)
+- Collabora Online Development Edition (CODE) tag [cp-23.05.1-3](https://github.com/CollaboraOnline/online/releases/tag/cp-23.05.1-3)
 - Collabora Office tag [cp-23.05.1-2](https://git.libreoffice.org/core/+/refs/tags/cp-23.05.1-2)
 - See also: [CODE 23.05 release notes](https://www.collaboraoffice.com/code-23-05-release-notes/)
 
