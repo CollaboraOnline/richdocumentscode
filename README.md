@@ -10,7 +10,7 @@ requirement on FUSE.
 If the app is built with an ARM64 AppImage, it will be named as richdocumentscode_arm64.
 
 ## System requirements
-- Linux x86-64 or ARM64 (aarch64) platform
+- Linux x86-64 (ARM64/aarch64 platform is not supported at this time)
 - 2 CPU cores
 - 1 GB RAM + 100 MB RAM / user
 - 100 kbit/s network bandwidth / user
