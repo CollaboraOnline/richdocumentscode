@@ -7,8 +7,6 @@ The included CODE Server app is provided as an AppImage. When running under Dock
 will be unpacked and run, else the host is required to be able to run AppImages which adds a
 requirement on FUSE.
 
-If the app is built with an ARM64 AppImage, it will be named as richdocumentscode_arm64.
-
 ## System requirements
 - Linux x86-64 (ARM64/aarch64 platform is not supported at this time)
 - 2 CPU cores
