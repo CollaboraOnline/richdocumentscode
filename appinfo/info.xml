@@ -4,7 +4,7 @@
     <id>richdocumentscode</id>
     <name>Collabora Online - Built-in CODE Server</name>
     <summary>Built-in Collabora Online Development Edition (CODE) server for local testing and non-production use</summary>
-    <description><![CDATA[This app has to be installed and used together with the **[Collabora Online](https://apps.nextcloud.com/apps/richdocuments)** app.
+    <description><![CDATA[This app has to be installed and used together with the **[Nextcloud Office](https://apps.nextcloud.com/apps/richdocuments)** integration app.
 
 Collabora Online is a powerful LibreOffice-based online office suite with collaborative editing, which supports all major documents, spreadsheet and presentation file formats and works together with all modern browsers.
 
