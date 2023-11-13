@@ -28,7 +28,7 @@ function errorExit($msg)
 {
     print "<html><body>\n";
     print "<h1>Socket proxy error</h1>\n";
-    print "<p>Error: " . $msg . "</p>\n";
+    print "<p>Error: " . htmlspecialchars($msg) . "</p>\n";
     print "</body></html>\n";
     error_log("richdocumentscode (proxy.php) error exit, PID: " . getmypid() . ", Message: $msg");
     http_response_code(400);
