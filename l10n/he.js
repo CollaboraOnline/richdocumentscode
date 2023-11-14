@@ -7,8 +7,6 @@ OC.L10N.register(
     "Your system is ARM64, but you have installed the x86_64 version of the app. Please remove this and" : "המערכת שלך היא ARM64 אך התקנת את גרסת x86_64 של היישומון. נא להסיר אותה וגם",
     "install the correct version from the Nextcloud App Store." : "להתקין את הגרסה הנכונה מחנות היישומונים של Nextcloud.",
     "Your system is x86_64, but you have installed the ARM64 version of the app. Please remove this and" : "המערכת שלך היא x86_64 אך התקנת את גרסת ARM64 של היישומון. נא להסיר אותה וגם",
-    "Settings > Administration > Collabora Online" : "הגדרות > ניהול > Collabora Online",
-    "Built-in CODE server is designed to work with the usual Collabora Online app." : "שרת ה־CODE המובנה מתוכנן לעבוד עם יישומון Collabora Online הרגיל.",
     "Install it from the Nextcloud App Store." : "ניתן להתקין אותו מחנות היישומונים של Nextcloud."
 },
 "nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n == 2 && n % 1 == 0) ? 1: (n % 10 == 0 && n % 1 == 0 && n > 10) ? 2 : 3;");
