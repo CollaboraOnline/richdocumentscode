@@ -10,6 +10,7 @@ OC.L10N.register(
     "Your system is x86_64, but you have installed the ARM64 version of the app. Please remove this and" : "Seu sistema é x86_64, mas você instalou a versão ARM64 do aplicativo. Exclua-a e",
     "You have the Collabora Online app enabled. For further information and configuration, please check:" : "Você tem o aplicativo Collabora Online ativado. Para mais informações e configurações, verifique:",
     "Administration settings > Nextcloud Office" : "Configurações de administração > Nextcloud Office",
+    "The Built-in CODE Server is designed to work with the Nextcloud Office app." : "O servidor CODE integrado foi projetado para funcionar com o aplicativo Nextcloud Office.",
     "Install it from the Nextcloud App Store." : "Instale-o pela Loja de Aplicativos Nextcloud.",
     "An error occurred while trying to check your Collabora Online app installation. You may report this error\n                with the tag: <em>richdocuments-EnabledCheckFailed</em>" : "Ocorreu um erro ao verificar a instalação do aplicativo Collabora Online. Você pode relatar este erro\n                com o rótulo: <em>richdocuments-EnabledCheckFailed</em>"
 },
