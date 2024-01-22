@@ -86,11 +86,22 @@ function startCoolwsd()
         $remoteFontConfig = "--o:remote_font_config.url=" . $remoteFontConfigUrl;
     }
 
+    // Check if IPv6 has been disabled
+    $IPv4only = "";
+    $launchCmd = "ip -6 addr";
+    debug_log("Testing disabled IPv6: $launchCmd");
+    exec($launchCmd, $output, $return);
+    if (implode("",$output)=="")
+    {
+        debug_log("IPv6 disabled. Will launch coolwsd with IPv4-only option.");
+        $IPv4only = "--o:net.proto=IPv4";
+    }
+
     // Extract the AppImage if FUSE is not available
     // net.lok_allow.host[14] is the next empty slot after the last element of the default list
     // when lok_allow does not contain the Nextcloud host, it is not possible to insert image from Nextloud
     // we have to set explicitely, because storage.wopi.alias_groups[@mode] is 'first' in case of richdocumentscode
-    $launchCmd = "bash -c \"( $appImage $remoteFontConfig --o:net.lok_allow.host[14]=" . $_SERVER['HTTP_HOST'] . " --pidfile=$pidfile || $appImage --appimage-extract-and-run $remoteFontConfig --o:net.lok_allow.host[14]=" . $_SERVER['HTTP_HOST'] . " --pidfile=$pidfile) >/dev/null & disown\"";
+    $launchCmd = "bash -c \"( $appImage $remoteFontConfig $IPv4only --o:net.lok_allow.host[14]=" . $_SERVER['HTTP_HOST'] . " --pidfile=$pidfile || $appImage --appimage-extract-and-run $remoteFontConfig $IPv4only --o:net.lok_allow.host[14]=" . $_SERVER['HTTP_HOST'] . " --pidfile=$pidfile) >/dev/null & disown\"";
 
     // Remove stale lock file (just in case)
     if (file_exists("$lockfile"))
