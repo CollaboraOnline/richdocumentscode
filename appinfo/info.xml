@@ -4,13 +4,21 @@
     <id>richdocumentscode</id>
     <name>Collabora Online - Built-in CODE Server</name>
     <summary>Built-in Collabora Online Development Edition (CODE) server for local testing and non-production use</summary>
-    <description><![CDATA[This app has to be installed and used together with the **[Nextcloud Office](https://apps.nextcloud.com/apps/richdocuments)** integration app.
+    <description><![CDATA[**This app has to be installed and used together with the [Nextcloud Office](https://apps.nextcloud.com/apps/richdocuments) integration app.**
 
 Collabora Online is a powerful LibreOffice-based online office suite with collaborative editing, which supports all major documents, spreadsheet and presentation file formats and works together with all modern browsers.
 
-This app provides a built-in server with all of the document editing features of Collabora Online. Easy to install, for personal use or for small teams. A bit slower than a standalone server and without the advanced scalability features.
+* This app provides a built-in server with all of the document editing features of Collabora Online. 
+* Easy to install, for personal use or for small teams. 
+* A bit slower than a standalone server and without the advanced scalability features.
 
-The download is rather big so it is possible you experience a time-out when using the web interface. You can use the OCC command line tool to install the built-in server:
+**System Requirements:**
+- Linux running on ```x86-64``` or ```arm64/aarch64```
+- A ```glibc``` based distribution/container (```musl libc``` is **not** supported)
+- Fontconfig (```libfontconfig.so.1```)
+- Additional requirements can be found in [here](https://github.com/CollaboraOnline/richdocumentscode#richdocumentscode)
+          
+*The download is rather big so it is possible you will experience a time-out when installing via the web interface.* You can use the OCC command install the built-in server from the command-line instead:
 
 ```
 sudo -u wwwrun php -d memory_limit=512M ./occ app:install richdocumentscode
@@ -23,8 +31,10 @@ sudo -u wwwrun php -d memory_limit=512M ./occ app:update --all
 ```
 
 Of course, alternatively you could increase memory usage and PHP time-outs by default, see the [Nextcloud documentation.](https://docs.nextcloud.com/server/latest/admin_manual/configuration_files/big_file_upload_configuration.html?highlight=php%20timeout#configuring-your-web-server)
+
+Additional troubleshooting tips can be found [here](https://github.com/CollaboraOnline/richdocumentscode?tab=readme-ov-file#troubleshooting).          
 ]]></description>
-    <version>23.5.705</version>
+    <version>23.5.1001</version>
     <licence>apache</licence>
     <author>Collabora Productivity</author>
     <namespace>RichDocumentsCODE</namespace>
