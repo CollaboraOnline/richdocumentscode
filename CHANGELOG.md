@@ -1,3 +1,11 @@
+## 23.4.102 - 2024-04-15
+- This is a major new release based on Collabora Online Development Edition 24.04
+- Compatibility set with Nextcloud 29
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-24.04.1-2](https://github.com/CollaboraOnline/online/releases/tag/cp-24.04.1-2)
+- Collabora Office tag [cp-24.04.1-2](https://git.libreoffice.org/core/+/refs/tags/cp-24.04.1-2)
+- See also: [CODE 24.04 release notes](https://www.collaboraoffice.com/code-24-04-release-notes/)
+
 ## 23.5.1001 - 2024-03-28
 ### Fixes:
 - Fixed regression: allow insertion of images from Nextcloud to the document

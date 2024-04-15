@@ -8,8 +8,8 @@
 
 Collabora Online is a powerful LibreOffice-based online office suite with collaborative editing, which supports all major documents, spreadsheet and presentation file formats and works together with all modern browsers.
 
-* This app provides a built-in server with all of the document editing features of Collabora Online. 
-* Easy to install, for personal use or for small teams. 
+* This app provides a built-in server with all of the document editing features of Collabora Online.
+* Easy to install, for personal use or for small teams.
 * A bit slower than a standalone server and without the advanced scalability features.
 
 **System Requirements:**
@@ -17,7 +17,7 @@ Collabora Online is a powerful LibreOffice-based online office suite with collab
 - A ```glibc``` based distribution/container (```musl libc``` is **not** supported)
 - Fontconfig (```libfontconfig.so.1```)
 - Additional requirements can be found in [here](https://github.com/CollaboraOnline/richdocumentscode#richdocumentscode)
-          
+
 *The download is rather big so it is possible you will experience a time-out when installing via the web interface.* You can use the OCC command install the built-in server from the command-line instead:
 
 ```
@@ -32,9 +32,9 @@ sudo -u wwwrun php -d memory_limit=512M ./occ app:update --all
 
 Of course, alternatively you could increase memory usage and PHP time-outs by default, see the [Nextcloud documentation.](https://docs.nextcloud.com/server/latest/admin_manual/configuration_files/big_file_upload_configuration.html?highlight=php%20timeout#configuring-your-web-server)
 
-Additional troubleshooting tips can be found [here](https://github.com/CollaboraOnline/richdocumentscode?tab=readme-ov-file#troubleshooting).          
+Additional troubleshooting tips can be found [here](https://github.com/CollaboraOnline/richdocumentscode?tab=readme-ov-file#troubleshooting).
 ]]></description>
-    <version>23.5.1001</version>
+    <version>24.4.102</version>
     <licence>apache</licence>
     <author>Collabora Productivity</author>
     <namespace>RichDocumentsCODE</namespace>
@@ -54,7 +54,7 @@ Additional troubleshooting tips can be found [here](https://github.com/Collabora
     <screenshot>https://www.collaboraoffice.com/downloads/nextcloud/richdocumentscode/collabora-online-screenshot-4.png</screenshot>
     <screenshot>https://www.collaboraoffice.com/downloads/nextcloud/richdocumentscode/collabora-online-screenshot-5.png</screenshot>
     <dependencies>
-        <nextcloud min-version="25" max-version="28"/>
+        <nextcloud min-version="25" max-version="29"/>
         <architecture>x86_64</architecture>
     </dependencies>
     <settings>
