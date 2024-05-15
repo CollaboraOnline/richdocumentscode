@@ -1,4 +1,10 @@
-## 23.4.103 - 2024-04-22
+## 24.4.201 - 2024-05-15
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-24.04.2-1](https://github.com/CollaboraOnline/online/releases/tag/cp-24.04.2-1)
+- Collabora Office tag [cp-24.04.2-1](https://git.libreoffice.org/core/+/refs/tags/cp-24.04.2-1)
+- See also: [CODE 24.04 release notes](https://www.collaboraoffice.com/code-24-04-release-notes/)
+
+## 24.4.103 - 2024-04-22
 - This is a major new release based on Collabora Online Development Edition 24.04
 - Compatibility set with Nextcloud 29
 ### AppImage version:
