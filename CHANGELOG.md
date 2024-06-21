@@ -1,3 +1,11 @@
+## 24.4.402 - 2024-06-21
+### Fixes:
+- #238 - documents created from templates were not saved
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-24.04.4-2](https://github.com/CollaboraOnline/online/releases/tag/cp-24.04.4-2)
+- Collabora Office tag [cp-24.04.4-2](https://git.libreoffice.org/core/+/refs/tags/cp-24.04.4-2)
+- See also: [CODE 24.04 release notes](https://www.collaboraoffice.com/code-24-04-release-notes/)
+
 ## 24.4.201 - 2024-05-15
 ### AppImage version:
 - Collabora Online Development Edition (CODE) tag [cp-24.04.2-1](https://github.com/CollaboraOnline/online/releases/tag/cp-24.04.2-1)

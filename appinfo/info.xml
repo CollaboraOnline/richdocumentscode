@@ -34,7 +34,7 @@ Of course, alternatively you could increase memory usage and PHP time-outs by de
 
 Additional troubleshooting tips can be found [here](https://github.com/CollaboraOnline/richdocumentscode?tab=readme-ov-file#troubleshooting).
 ]]></description>
-    <version>24.4.201</version>
+    <version>24.4.402</version>
     <licence>apache</licence>
     <author>Collabora Productivity</author>
     <namespace>RichDocumentsCODE</namespace>
@@ -55,7 +55,7 @@ Additional troubleshooting tips can be found [here](https://github.com/Collabora
     <screenshot>https://www.collaboraoffice.com/downloads/nextcloud/richdocumentscode/collabora-online-screenshot-5.png</screenshot>
     <screenshot>https://www.collaboraoffice.com/downloads/nextcloud/richdocumentscode/collabora-online-screenshot-6.png</screenshot>
     <dependencies>
-        <nextcloud min-version="25" max-version="29"/>
+        <nextcloud min-version="25" max-version="30"/>
         <architecture>x86_64</architecture>
     </dependencies>
     <settings>
