@@ -18,7 +18,7 @@ will be unpacked and run, else the host is required to be able to run AppImages 
 requirement on FUSE.
 
 ## System requirements
-- Linux x86-64 (ARM64/aarch64 platform is not supported at this time see [Issue 226](https://github.com/CollaboraOnline/richdocumentscode/issues/226))
+- Linux x86-64 (ARM64/aarch64 platform is not supported for all users at this time, see [Issue 226](https://github.com/CollaboraOnline/richdocumentscode/issues/226))
 - 2 CPU cores
 - 1 GB RAM + 100 MB RAM / user
 - 100 kbit/s network bandwidth / user
