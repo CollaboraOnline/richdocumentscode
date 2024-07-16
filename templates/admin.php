@@ -44,7 +44,7 @@
                 <u><a href="<?php
                     echo($_['richdocumentsAdminURL']);
                     ?>">
-                        <?php p($l->t('Settings > Administration > Collabora Online')); ?>
+                        <?php p($l->t('Administration settings > Nextcloud Office')); ?>
                     </a>
                 </u>
             </p>
@@ -52,7 +52,7 @@
     <?php elseif ($_['richdocumentsEnabled'] === 'no'): ?>
         <div id="richdocuments-NotEnabled">
             <p>
-                <?php p($l->t('Built-in CODE server is designed to work with the usual Collabora Online app.')); ?>
+                <?php p($l->t('The Built-in CODE Server is designed to work with the Nextcloud Office app.')); ?>
                 <u>
                     <a href="<?php echo($_['richdocumentsURL']) ?>">
                         <?php p($l->t('Install it from the Nextcloud App Store.')); ?>

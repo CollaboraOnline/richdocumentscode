@@ -1,3 +1,94 @@
+## 24.4.402 - 2024-06-21
+### Fixes:
+- #238 - documents created from templates were not saved
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-24.04.4-2](https://github.com/CollaboraOnline/online/releases/tag/cp-24.04.4-2)
+- Collabora Office tag [cp-24.04.4-2](https://git.libreoffice.org/core/+/refs/tags/cp-24.04.4-2)
+- See also: [CODE 24.04 release notes](https://www.collaboraoffice.com/code-24-04-release-notes/)
+
+## 24.4.201 - 2024-05-15
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-24.04.2-1](https://github.com/CollaboraOnline/online/releases/tag/cp-24.04.2-1)
+- Collabora Office tag [cp-24.04.2-1](https://git.libreoffice.org/core/+/refs/tags/cp-24.04.2-1)
+- See also: [CODE 24.04 release notes](https://www.collaboraoffice.com/code-24-04-release-notes/)
+
+## 24.4.103 - 2024-04-22
+- This is a major new release based on Collabora Online Development Edition 24.04
+- Compatibility set with Nextcloud 29
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-24.04.1-3](https://github.com/CollaboraOnline/online/releases/tag/cp-24.04.1-3)
+- Collabora Office tag [cp-24.04.1-3](https://git.libreoffice.org/core/+/refs/tags/cp-24.04.1-3)
+- See also: [CODE 24.04 release notes](https://www.collaboraoffice.com/code-24-04-release-notes/)
+
+## 23.5.1001 - 2024-03-28
+### Fixes:
+- Fixed regression: allow insertion of images from Nextcloud to the document
+- Fixed startup when IPv6 is disabled
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-23.05.10-1](https://github.com/CollaboraOnline/online/releases/tag/cp-23.05.10-1)
+- Collabora Office tag [cp-23.05.10-1](https://git.libreoffice.org/core/+/refs/tags/cp-23.05.10-1)
+- See also: [CODE 23.05 release notes](https://www.collaboraoffice.com/code-23-05-release-notes/)
+
+## 23.5.904 - 2024-03-08
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-23.05.9-4](https://github.com/CollaboraOnline/online/releases/tag/cp-23.05.9-4)
+- Collabora Office tag [cp-23.05.9-4](https://git.libreoffice.org/core/+/refs/tags/cp-23.05.9-4)
+- See also: [CODE 23.05 release notes](https://www.collaboraoffice.com/code-23-05-release-notes/)
+
+## 23.5.902 - 2024-02-15
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-23.05.9-2](https://github.com/CollaboraOnline/online/releases/tag/cp-23.05.9-2)
+- Collabora Office tag [cp-23.05.9-2](https://git.libreoffice.org/core/+/refs/tags/cp-23.05.9-2)
+- See also: [CODE 23.05 release notes](https://www.collaboraoffice.com/code-23-05-release-notes/)
+
+## 23.5.901 - 2024-02-15
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-23.05.9-1](https://github.com/CollaboraOnline/online/releases/tag/cp-23.05.9-1)
+- Collabora Office tag [cp-23.05.9-1](https://git.libreoffice.org/core/+/refs/tags/cp-23.05.9-1)
+- See also: [CODE 23.05 release notes](https://www.collaboraoffice.com/code-23-05-release-notes/)
+
+## 23.5.705 - 2024-01-22
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-23.05.7-5](https://github.com/CollaboraOnline/online/releases/tag/cp-23.05.7-5)
+- Collabora Office tag [cp-23.05.7-5](https://git.libreoffice.org/core/+/refs/tags/cp-23.05.7-5)
+- See also: [CODE 23.05 release notes](https://www.collaboraoffice.com/code-23-05-release-notes/)
+
+## 23.5.702 - 2024-01-12
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-23.05.7-2](https://github.com/CollaboraOnline/online/releases/tag/cp-23.05.7-2)
+- Collabora Office tag [cp-23.05.7-2](https://git.libreoffice.org/core/+/refs/tags/cp-23.05.7-2)
+- See also: [CODE 23.05 release notes](https://www.collaboraoffice.com/code-23-05-release-notes/)
+
+## 23.5.604 - 2023-12-20
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-23.05.6-4](https://github.com/CollaboraOnline/online/releases/tag/cp-23.05.6-4)
+- Collabora Office tag [cp-23.05.6-4](https://git.libreoffice.org/core/+/refs/tags/cp-23.05.6-4)
+- See also: [CODE 23.05 release notes](https://www.collaboraoffice.com/code-23-05-release-notes/)
+
+## 23.5.602 - 2023-12-05
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-23.05.6-2](https://github.com/CollaboraOnline/online/releases/tag/cp-23.05.6-2)
+- Collabora Office tag [cp-23.05.6-2](https://git.libreoffice.org/core/+/refs/tags/cp-23.05.6-2)
+- See also: [CODE 23.05 release notes](https://www.collaboraoffice.com/code-23-05-release-notes/)
+
+## 23.5.601 - 2023-12-04
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-23.05.6-1](https://github.com/CollaboraOnline/online/releases/tag/cp-23.05.6-1)
+- Collabora Office tag [cp-23.05.6-1](https://git.libreoffice.org/core/+/refs/tags/cp-23.05.6-1)
+- See also: [CODE 23.05 release notes](https://www.collaboraoffice.com/code-23-05-release-notes/)
+
+## 23.5.503 - 2023-10-30
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-23.05.5-3](https://github.com/CollaboraOnline/online/releases/tag/cp-23.05.5-3)
+- Collabora Office tag [cp-23.05.5-3](https://git.libreoffice.org/core/+/refs/tags/cp-23.05.5-3)
+- See also: [CODE 23.05 release notes](https://www.collaboraoffice.com/code-23-05-release-notes/)
+
+## 23.5.502 - 2023-10-21
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-23.05.5-2](https://github.com/CollaboraOnline/online/releases/tag/cp-23.05.5-2)
+- Collabora Office tag [cp-23.05.5-2](https://git.libreoffice.org/core/+/refs/tags/cp-23.05.5-2)
+- See also: [CODE 23.05 release notes](https://www.collaboraoffice.com/code-23-05-release-notes/)
+
 ## 23.5.403 - 2023-10-13
 ### AppImage version:
 - Collabora Online Development Edition (CODE) tag [cp-23.05.4-2](https://github.com/CollaboraOnline/online/releases/tag/cp-23.05.4-2)
