@@ -17,6 +17,10 @@ The included CODE Server app is provided as an AppImage. When running under Dock
 will be unpacked and run, else the host is required to be able to run AppImages which adds a
 requirement on FUSE.
 
+Notes:
+* If the app is built with an ARM64 AppImage, it will be named `richdocumentscode_arm64`.
+* On slower systems, the first time the CODE Server is started there may be a noticeable delay (also applies on subsequent runs if `/tmp` whenever cleared)
+
 ## System requirements
 - Linux x86-64 (ARM64/aarch64 platform is not supported for all users at this time, see [Issue 226](https://github.com/CollaboraOnline/richdocumentscode/issues/226))
 - 2 CPU cores
