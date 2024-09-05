@@ -177,8 +177,12 @@ function checkCoolwsdSetup()
     return '';
 }
 
+function startsWith($string, $with) {
+    return (substr($string, 0, strlen($with)) === $with);
+}
+
 // parse and emit headers using 'header' ...
-function parseLastHeader(&$chunk)
+function parseLastHeader(&$chunk, &$contentLength)
 {
     $headers = explode("\r\n", $chunk);
     debug_log("Headers: $chunk");
@@ -193,15 +197,15 @@ function parseLastHeader(&$chunk)
             $endOfHeaders = true;
             break;
         }
+        if (startsWith($h, 'Content-Length:'))
+        {
+            $contentLength = (int)trim(substr($h, strlen('Content-Length:')));
+        }
         header($h);
     }
     // keep looking for the next header.
     $chunk = substr($chunk, $chop);
     return $endOfHeaders;
-}
-
-function startsWith($string, $with) {
-    return (substr($string, 0, strlen($with)) === $with);
 }
 
 // avoid unwanted escaping of req= parameter
@@ -391,6 +395,8 @@ fwrite($local, $body);
 debug_log("waiting for response");
 
 $rest = '';
+$contentLength = -1;
+$contentWritten = 0;
 $parsingHeaders = true;
 do {
     $chunk = fread($local, 65536);
@@ -407,18 +413,27 @@ do {
     } elseif ($parsingHeaders) {
         $rest .= $chunk;
         debug_log("build headers to: $rest\n");
-        if (parseLastHeader($rest)) {
+        if (parseLastHeader($rest, $contentLength)) {
             $parsingHeaders = false;
 
             $extOut = fopen("php://output", "w") or errorExit("fundamental error opening PHP output");
             fwrite($extOut, $rest);
+            $contentWritten += strlen($rest);
             $rest = '';
             debug_log("passed last headers");
         }
     } else {
         fwrite($extOut, $chunk);
-        debug_log("proxy : " . strlen($chunk) . " bytes \n");
+        $contentWritten += strlen($chunk);
+        debug_log("proxy : " . strlen($chunk) . " bytes");
     }
+
+    if ($contentLength != -1 && $contentWritten == $contentLength)
+    {
+        debug_log("reached ContentLength of $contentLength bytes");
+        break;
+    }
+
 } while(true);
 
 debug_log("closing local socket");
