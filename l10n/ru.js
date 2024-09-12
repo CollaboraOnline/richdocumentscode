@@ -9,6 +9,7 @@ OC.L10N.register(
     "install the correct version from the Nextcloud App Store." : "Вам необходимо удалить уставленную версию приложения и установить из магазина приложений версию, соответствующую архитектуре.",
     "Your system is x86_64, but you have installed the ARM64 version of the app. Please remove this and" : "Вы используете систему на архитектуре x86_64 но установлена версия приложения для архитектуры ARM64.",
     "You have the Collabora Online app enabled. For further information and configuration, please check:" : "Вы включили Collabora Online app. Для дальнейшей информации и конфигурирования, пожалуйста, проверьте:",
+    "Administration settings > Nextcloud Office" : "Настройки администрирования > Nextcloud Office",
     "Install it from the Nextcloud App Store." : "Установить это из Nextcloud App Store.",
     "An error occurred while trying to check your Collabora Online app installation. You may report this error\n                with the tag: <em>richdocuments-EnabledCheckFailed</em>" : "Возникла ошибка во время проверки установки Collabora Online app. Вы можете отправить отчет об этой ошибке\n                с этим тэгом: <em>richdocuments-EnabledCheckFailed</em>"
 },
