@@ -18,7 +18,6 @@ will be unpacked and run, else the host is required to be able to run AppImages 
 requirement on FUSE.
 
 Notes:
-* If the app is built with an ARM64 AppImage, it will be named `richdocumentscode_arm64`.
 * On slower systems, the first time the CODE Server is started there may be a noticeable delay (also applies on subsequent runs if `/tmp` whenever cleared)
 
 ## System requirements
@@ -43,6 +42,12 @@ The download is rather big (~300 MB) so it is possible you will experience a tim
 sudo -u wwwrun php -d memory_limit=512M ./occ app:install richdocumentscode
 ```
 Where `wwwrun` is the user of your web server. This is ```www-data``` on Debian, Ubuntu and derivatives, `wwwrun` on SUSE based distributions, `apache` on Red Hat/Fedora and `http` on Arch linux and derivatives.
+
+`richdocumentscode` is only for architecture x86_64. If you want to install the app for ARM64, install `richdocumentscode_arm64`:
+```
+sudo -u wwwrun php -d memory_limit=512M ./occ app:install richdocumentscode_arm64
+```
+
 Updates can be done like this:
 ```
 sudo -u wwwrun php -d memory_limit=512M ./occ app:update --all
