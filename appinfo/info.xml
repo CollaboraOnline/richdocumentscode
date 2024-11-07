@@ -34,7 +34,7 @@ Of course, alternatively you could increase memory usage and PHP time-outs by de
 
 Additional troubleshooting tips can be found [here](https://github.com/CollaboraOnline/richdocumentscode?tab=readme-ov-file#troubleshooting).
 ]]></description>
-    <version>24.4.901</version>
+    <version>24.4.902</version>
     <licence>apache</licence>
     <author>Collabora Productivity</author>
     <namespace>RichDocumentsCODE</namespace>
