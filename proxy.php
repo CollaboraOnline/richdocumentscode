@@ -26,12 +26,12 @@ function debug_log($msg)
 
 function errorExit($msg)
 {
+    http_response_code(400);
     print "<html><body>\n";
     print "<h1>Socket proxy error</h1>\n";
     print "<p>Error: " . htmlspecialchars($msg) . "</p>\n";
     print "</body></html>\n";
     error_log("richdocumentscode (proxy.php) error exit, PID: " . getmypid() . ", Message: $msg");
-    http_response_code(400);
     exit();
 }
 
@@ -242,7 +242,6 @@ if (startsWith($request, '/hosting/capabilities') && !isCoolwsdRunning()) {
         "hasTemplateSource":true
     }';
 
-    http_response_code(200);
     exit();
 }
 
@@ -293,7 +292,6 @@ if ($statusOnly) {
         fclose($local);
     }
 
-    http_response_code(200);
     exit();
 }
 // URL into this server of the proxy script.
