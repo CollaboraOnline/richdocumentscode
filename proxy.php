@@ -269,8 +269,8 @@ if ($statusOnly) {
         if ($response) {
             // Version check.
             $obj = json_decode($response);
-            $actVer = substr($obj->{'productVersionHash'}, 0, 8); // expVer is at most 8 characters long
             $expVer = '%COOLWSD_VERSION_HASH%';
+            $actVer = substr($obj->{'productVersionHash'}, 0, strlen($expVer));
             if ($actVer !== $expVer && $expVer !== '%' . 'COOLWSD_VERSION_HASH' . '%') { // deliberately split so that sed does not touch this during build-time
                 // Old/unexpected server version; restart.
                 error_log("Old server found, restarting. Expected hash $expVer but found $actVer.");
