@@ -1,6 +1,6 @@
 { "translations": {
-    "Built-in CODE Server" : "Servidor de CODI integrat",
-    "Collabora Online - Built-in CODE Server" : "Collabora Online - Servidor de CODI integrat",
+    "Built-in CODE Server" : "Servidor de CODE integrat",
+    "Collabora Online - Built-in CODE Server" : "Collabora Online - Servidor de CODE integrat",
     "Built-in Collabora Online Development Edition (CODE) server for local testing and non-production use" : "Servidor integrat collabora Online Development Edition (CODE) per a proves locals i ús no producció",
     "Your system is ARM64, but you have installed the x86_64 version of the app. Please remove this and" : "El vostre sistema és ARM64, però heu instal·lat la versió x86_64 de l'aplicació. Suprimiu això i",
     "install the correct version from the Nextcloud App Store." : "instal·lar la versió correcta des del Magatzem d'Apps de Nextcloud.",
