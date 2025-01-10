@@ -1,3 +1,14 @@
+## 24.4.1103 - 2026-01-10
+### Fixes
+- #270 http_response_code(): Cannot set response code - headers already sent
+- #286 Cannot set response code - headers already sent - richdocumentscode/proxy.php on line 296
+- #295 coolwsd restart: expVer is 10 chars long but only 8 chars are expected
+- #298 Collabora_Online segfault on Debian 12 under AMD-based KVM
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-24.04.11-2](https://github.com/CollaboraOnline/online/releases/tag/cp-24.04.11-2)
+- Collabora Office tag [cp-24.04.11-2](https://git.libreoffice.org/core/+/refs/tags/cp-24.04.11-2)
+- See also: [CODE 24.04 release notes](https://www.collaboraoffice.com/code-24-04-release-notes/)
+
 ## 24.4.1102 - 2026-01-09
 ### AppImage version:
 - Collabora Online Development Edition (CODE) tag [cp-24.04.11-2](https://github.com/CollaboraOnline/online/releases/tag/cp-24.04.11-2)
