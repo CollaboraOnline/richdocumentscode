@@ -1,4 +1,10 @@
-## 24.4.1103 - 2026-01-10
+## 24.4.1203 - 2025-02-10
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-24.04.12-3](https://github.com/CollaboraOnline/online/releases/tag/cp-24.04.12-3)
+- Collabora Office tag [cp-24.04.12-3](https://git.libreoffice.org/core/+/refs/tags/cp-24.04.12-3)
+- See also: [CODE 24.04 release notes](https://www.collaboraoffice.com/code-24-04-release-notes/)
+
+## 24.4.1103 - 2025-01-10
 ### Fixes
 - #270 http_response_code(): Cannot set response code - headers already sent
 - #286 Cannot set response code - headers already sent - richdocumentscode/proxy.php on line 296
@@ -9,7 +15,7 @@
 - Collabora Office tag [cp-24.04.11-2](https://git.libreoffice.org/core/+/refs/tags/cp-24.04.11-2)
 - See also: [CODE 24.04 release notes](https://www.collaboraoffice.com/code-24-04-release-notes/)
 
-## 24.4.1102 - 2026-01-09
+## 24.4.1102 - 2025-01-09
 ### AppImage version:
 - Collabora Online Development Edition (CODE) tag [cp-24.04.11-2](https://github.com/CollaboraOnline/online/releases/tag/cp-24.04.11-2)
 - Collabora Office tag [cp-24.04.11-2](https://git.libreoffice.org/core/+/refs/tags/cp-24.04.11-2)
