@@ -399,9 +399,10 @@ $parsingHeaders = true;
 do {
     $chunk = fread($local, 65536);
     if($chunk === false) {
-        $error = implode(' ', error_get_last());
-        echo "ERROR ! $error\n";
-        debug_log("error on chunk: $error");
+        $error = error_get_last();
+        $errorMessage = $error ? implode(' ', $error) : 'No error';
+        echo "ERROR ! $errorMessage\n";
+        debug_log("error on chunk: $errorMessage");
         break;
     } elseif($chunk === '') {
         debug_log("empty chunk last data");
