@@ -12,6 +12,6 @@ OC.L10N.register(
     "Administration settings > Nextcloud Office" : "Administrationseinstellungen > Nextcloud Office",
     "The Built-in CODE Server is designed to work with the Nextcloud Office app." : "Der integrierte CODE-Server ist für die Zusammenarbeit mit der Nextcloud Office-App konzipiert.",
     "Install it from the Nextcloud App Store." : "Installieren Sie es aus dem App Store.",
-    "An error occurred while trying to check your Collabora Online app installation. You may report this error\n                with the tag: <em>richdocuments-EnabledCheckFailed</em>" : "Es ist ein Fehler beim Versuch, die Installation Ihrer Collabora Online-App zu überprüfen aufgetreten. Sie können diesen Fehler melden\n                mit dem Schlagwort: <em>richdocuments-EnabledCheckFailed</em>"
+    "An error occurred while trying to check your Collabora Online app installation. You may report this error\n                with the tag: <em>richdocuments-EnabledCheckFailed</em>" : "Beim Versuch, die Installation Ihrer Collabora Online-App zu überprüfen, ist ein Fehler aufgetreten. Sie können diesen Fehler melden\n                mit dem Schlagwort: <em>richdocuments-EnabledCheckFailed</em>"
 },
 "nplurals=2; plural=(n != 1);");
