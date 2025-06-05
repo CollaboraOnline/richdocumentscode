@@ -6,7 +6,7 @@
     "Your system is ARM64, but you have installed the x86_64 version of the app. Please remove this and" : "Sisteminiz ARM64. Ama uygulamanın x86_64 sürümünü kurmuşsunuz. Lütfen bu sürümü kaldırın ve",
     "install the correct version from the Nextcloud App Store." : "Nextcloud uygulama mağazasından doğru sürümü kurun.",
     "Your system is x86_64, but you have installed the ARM64 version of the app. Please remove this and" : "Sisteminiz x86_64. Ama uygulamanın ARM64 sürümünü kurmuşsunuz. Lütfen bu sürümü kaldırın ve",
-    "You have the Collabora Online app enabled. For further information and configuration, please check:" : "Collabora Online uygulamasını kullanıma almışsınız. Ayrıntılı bilgi almak ve yapılandırmak için şuraya bakabilirsiniz:",
+    "You have the Collabora Online app enabled. For further information and configuration, please check:" : "Collabora Online uygulamasını etkinleştirmişsiniz. Ayrıntılı bilgi almak ve yapılandırmak için şuraya bakabilirsiniz:",
     "Administration settings > Nextcloud Office" : "Yönetim ayarları > Nextcloud Office",
     "The Built-in CODE Server is designed to work with the Nextcloud Office app." : "İç CODE sunucusu normal Nextcloud Office uygulaması ile çalışmak üzere tasarlanmıştır.",
     "Install it from the Nextcloud App Store." : "Nextcloud uygulama mağazasından kurun.",
