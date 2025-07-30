@@ -10,6 +10,6 @@
     "Administration settings > Nextcloud Office" : "Настройки администрирования > Nextcloud Office",
     "The Built-in CODE Server is designed to work with the Nextcloud Office app." : "Встроенный сервер CODE предназначен для работы с приложением Nextcloud Office.",
     "Install it from the Nextcloud App Store." : "Установить это из Nextcloud App Store.",
-    "An error occurred while trying to check your Collabora Online app installation. You may report this error\n                with the tag: <em>richdocuments-EnabledCheckFailed</em>" : "Возникла ошибка во время проверки установки Collabora Online app. Вы можете отправить отчет об этой ошибке\n                с этим тэгом: <em>richdocuments-EnabledCheckFailed</em>"
+    "An error occurred while trying to check your Collabora Online app installation. You may report this error\n                with the tag: <em>richdocuments-EnabledCheckFailed</em>" : "Возникла ошибка во время проверки установки Collabora Online app. Вы можете отправить отчёт об этой ошибке\n                с этим тэгом: <em>richdocuments-EnabledCheckFailed</em>"
 },"pluralForm" :"nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);"
 }
