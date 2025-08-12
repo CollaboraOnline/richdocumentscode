@@ -21,7 +21,7 @@ Notes:
 * On slower systems, the first time the CODE Server is started there may be a noticeable delay (also applies on subsequent runs if `/tmp` whenever cleared)
 
 ## System requirements
-- Linux x86-64 or ARM64 (aarch64) platform
+- Linux x86-64 (ARM64/aarch64 platform is not supported for all users at this time, see [Issue 226](https://github.com/CollaboraOnline/richdocumentscode/issues/226))
 - 2 CPU cores
 - 1 GB RAM + 100 MB RAM / user
 - 100 kbit/s network bandwidth / user
