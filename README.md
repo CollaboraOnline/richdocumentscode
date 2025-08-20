@@ -124,7 +124,7 @@ To make the `richdocumentscode` app work with your local Collabora Online server
 
    Open `proxy.php` and apply the following changes:
 
-   - **Update Server IP Address:** If you are running [nextcloud-docker-dev](https://github.com/juliusknorr/nextcloud-docker-dev), you must replace the hardcoded IP address (`192.168.1.46`) with your host machine's local network IP address. Find all occurrences of `192.168.1.46` and replace them with your IP.
+   - **Update Server IP Address:** If you are running [nextcloud-docker-dev](https://github.com/juliusknorr/nextcloud-docker-dev), you must replace the `localhost` with your host machine's local network IP address. Find all occurrences of `localhost` and replace them with your IP.
 
    - **Bypass Server Checks:** To connect to your local `coolwsd` instance, you need to bypass the standard server checks.
 
