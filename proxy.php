@@ -345,10 +345,18 @@ debug_log("Onward request is: '$realRequest'");
 $body = file_get_contents('php://input');
 debug_log("request content: '$body'");
 
+function isMultipartRequest($headers)
+{
+    $contentType = $headers['Content-Type'] ?? $headers['content-type'] ?? '';
+    return strpos(strtolower($contentType), 'multipart/form-data') !== false;
+}
+
 // Oh dear - PHP's rfc1867 handling doesn't give any php://input to work with in this case.
 $multiBody = '';
-if ($body === '' && count($_FILES) > 0) {
+if ($body === '' && isMultipartRequest($headers)) {
     debug_log("Oh dear - PHP's rfc1867 handling doesn't give any php://input to work with");
+	debug_log("Reconstructing multipart body - Files: " . count($_FILES) . ", Form fields: " . count($_POST));
+
     $type = isset($headers['Content-Type']) ? $headers['Content-Type'] : $headers['content-type'];
     $boundary = trim(explode('boundary=', $type)[1]);
     foreach ($_REQUEST as $key=>$value) {
@@ -371,7 +379,7 @@ if ($body === '' && count($_FILES) > 0) {
     $multiBody .= "--" . $boundary . "--\r\n";
     $body = $multiBody;
 
-    debug_log("$body");
+    debug_log("Reconstructed body: $body");
 }
 
 fwrite($local, $realRequest . "\r\n");
