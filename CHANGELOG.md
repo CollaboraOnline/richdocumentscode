@@ -1,7 +1,9 @@
-## 25.4.402 - 2025-07-31
+## 25.4.403 - 2025-08-22
+### Fixes:
+- Collabora Online user settings on Nextcloud user/admin settings pages come through the proxy
 ### AppImage version:
-- Collabora Online Development Edition (CODE) tag [cp-25.04.4-2](https://github.com/CollaboraOnline/online/releases/tag/cp-25.04.4-2)
-- Collabora Office tag [cp-25.04.4-2](https://git.libreoffice.org/core/+/refs/tags/cp-25.04.4-2)
+- Collabora Online Development Edition (CODE) tag [cp-25.04.4-3](https://github.com/CollaboraOnline/online/releases/tag/cp-25.04.4-3)
+- Collabora Office tag [cp-25.04.4-3](https://git.libreoffice.org/core/+/refs/tags/cp-25.04.4-3)
 - See also: [CODE 25.04 release notes](https://www.collaboraoffice.com/code-25-04-release-notes/)
 
 ## 25.4.301 - 2025-06-20
