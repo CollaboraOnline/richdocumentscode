@@ -148,6 +148,8 @@ To make the `richdocumentscode` app work with your local Collabora Online server
        }
        ```
 
+      - Change `expVer` to `%COOLWSD_VERSION_HASH%`, i.e. to this literal placeholder, because otherwise the expected and the actual git hashes may not match, and server will always return 'restarting' status instead of 'OK'.
+
    > **Note:** These changes are for development purposes only and should not be used in a production environment.
 
 3. **Configure Nextcloud Office:** In your Nextcloud instance, go to **Settings > Office**.
