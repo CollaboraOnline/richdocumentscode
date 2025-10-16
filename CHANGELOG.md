@@ -1,3 +1,9 @@
+## 25.4.602 - 2025-10-16
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-25.04.6-2](https://github.com/CollaboraOnline/online/releases/tag/cp-25.04.6-2)
+- Collabora Office tag [cp-25.04.6-2](https://git.libreoffice.org/core/+/refs/tags/cp-25.04.6-2)
+- See also: [CODE 25.04 release notes](https://www.collaboraoffice.com/code-25-04-release-notes/)
+
 ## 25.4.504 - 2025-09-26
 ### Fix:
 - #322 ProxyProtocol: improve proxy protocol message parsing and ordering
