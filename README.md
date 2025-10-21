@@ -109,6 +109,8 @@ Once the build is complete, run the following command from the root of your Coll
           --o:admin_console.password=admin \
           --o:ssl.enable=false \
           --port=9983 \
+          --o:security.capabilities=false \
+          --o:security.seccomp=false \
           --o:net.proxy_prefix=true
 ```
 
