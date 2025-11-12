@@ -99,9 +99,10 @@ function startCoolwsd()
 
     // Extract the AppImage if FUSE is not available
     // net.lok_allow.host[14] is the next empty slot after the last element of the default list
-    // when lok_allow does not contain the Nextcloud host, it is not possible to insert image from Nextloud
-    // we have to set explicitely, because storage.wopi.alias_groups[@mode] is 'first' in case of richdocumentscode
-    $launchCmd = "bash -c \"( $appImage $remoteFontConfig $IPv4only --o:net.lok_allow.host[14]=" . $_SERVER['HTTP_HOST'] . " --pidfile=$pidfile || $appImage --appimage-extract-and-run $remoteFontConfig $IPv4only --o:net.lok_allow.host[14]=" . $_SERVER['HTTP_HOST'] . " --pidfile=$pidfile) >/dev/null & disown\"";
+    // when lok_allow does not contain the Nextcloud host, it is not possible to insert image from Nextcloud
+    // we have to set explicitly, because storage.wopi.alias_groups[@mode] is 'first' in case of richdocumentscode
+    $lok_allow = "--o:net.lok_allow.host[14]=" . escapeshellarg($_SERVER['HTTP_HOST']);
+    $launchCmd = "bash -c \"( $appImage $remoteFontConfig $IPv4only $lok_allow --pidfile=$pidfile || $appImage --appimage-extract-and-run $remoteFontConfig $IPv4only $lok_allow --pidfile=$pidfile) >/dev/null & disown\"";
 
     // Remove stale lock file (just in case)
     if (file_exists("$lockfile"))
