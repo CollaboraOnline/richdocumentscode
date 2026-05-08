@@ -170,10 +170,6 @@ function checkCoolwsdSetup()
     return '';
 }
 
-function startsWith($string, $with) {
-    return (substr($string, 0, strlen($with)) === $with);
-}
-
 // Parse upstream response headers and forward them with header().
 function parseLastHeader(&$chunk, &$contentLength)
 {
@@ -190,7 +186,7 @@ function parseLastHeader(&$chunk, &$contentLength)
             $endOfHeaders = true;
             break;
         }
-        if (startsWith($h, 'Content-Length:'))
+        if (str_starts_with($h, 'Content-Length:'))
         {
             $contentLength = (int)trim(substr($h, strlen('Content-Length:')));
         }
@@ -209,11 +205,11 @@ function isMultipartRequest($headers)
 
 function parseProxyMode(string $queryString): array
 {
-    if (startsWith($queryString, 'status')) {
+    if (str_starts_with($queryString, 'status')) {
         return ['statusOnly' => true, 'request' => ''];
     }
 
-    if (startsWith($queryString, 'req=')) {
+    if (str_starts_with($queryString, 'req=')) {
         $request = substr($queryString, strlen('req='));
         if (substr($request, 0, 1) !== '/') {
             errorExit("First ?req= param should be an absolute path: '" . $request . "'");
@@ -420,7 +416,7 @@ debug_log("get URI " . $request);
 if ($request === '' && !$statusOnly)
     errorExit("Missing, required req= parameter");
 
-if (startsWith($request, '/hosting/capabilities') && !isCoolwsdRunning()) {
+if (str_starts_with($request, '/hosting/capabilities') && !isCoolwsdRunning()) {
     header('Content-type: application/json');
     header('Cache-Control: no-store');
 
