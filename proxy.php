@@ -334,6 +334,20 @@ function rebuildMultipartBody(array $headers): string
     return $multiBody;
 }
 
+function forwardRequestHeaders($local, array $headers, string $body, string $multiBody): void
+{
+    foreach ($headers as $header => $value) {
+        debug_log("$header: $value\n");
+
+        if ($multiBody !== '' && $header === 'Content-Length') {
+            debug_log("Substitute Content-Length of " . $value . " with " . strlen($body));
+            $value = strlen($body);
+        }
+
+        fwrite($local, "$header: $value\r\n");
+    }
+}
+
 // ------------------------------------------------------------
 // Main script flow
 // ------------------------------------------------------------
@@ -436,17 +450,10 @@ if ($body === '' && isMultipartRequest($headers)) {
 }
 
 fwrite($local, $realRequest . "\r\n");
-// Send the headers on ...
-foreach ($headers as $header => $value) {
-    debug_log("$header: $value\n");
-    if ($multiBody !== '' && $header === 'Content-Length')
-    {
-        debug_log("Substitute Content-Length of " . $value . " with " . strlen($body));
-        $value = strlen($body);
-    }
 
-    fwrite($local, "$header: $value\r\n");
-}
+// Send the headers on ...
+forwardRequestHeaders($local, $headers, $body, $multiBody);
+
 fwrite($local, "ProxyPrefix: " . $proxyURL . "\r\n");
 fwrite($local, "\r\n");
 fwrite($local, $body);
