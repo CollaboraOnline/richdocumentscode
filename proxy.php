@@ -224,6 +224,18 @@ function parseProxyMode(string $queryString): array
     errorExit("The param should be 'status' or 'req=...', but is: '" . $queryString . "'");
 }
 
+function getProxyScheme(): string
+{
+    if ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
+        || (isset($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on')
+	   ) {
+    	return 'https://';
+    }
+
+    return 'http://';
+}
+
 // ------------------------------------------------------------
 // Main script flow
 // ------------------------------------------------------------
@@ -315,14 +327,7 @@ if ($statusOnly) {
 }
 
 // URL into this server of the proxy script.
-if ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-	|| (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https' )
-	|| (isset($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on')
-) {
-    $proxyURL = "https://";
-} else {
-    $proxyURL = "http://";
-}
+$proxyURL = getProxyScheme();
 
 // Start the appimage if necessary
 if (!$local)
