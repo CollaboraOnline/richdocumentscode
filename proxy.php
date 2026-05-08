@@ -18,6 +18,10 @@
 // test with:
 // http://localhost/richproxy/proxy.php?req=/browser/dist/cool.html?file_path=file:///opt/libreoffice/online/test/data/hello-world.odt
 
+// ------------------------------------------------------------
+// Helper functions
+// ------------------------------------------------------------
+
 function debug_log($msg)
 {
     // Disabled for production; enable for debugging
@@ -203,6 +207,27 @@ function isMultipartRequest($headers)
     return strpos(strtolower($contentType), 'multipart/form-data') !== false;
 }
 
+function parseProxyMode(string $queryString): array
+{
+    if (startsWith($queryString, 'status')) {
+        return ['statusOnly' => true, 'request' => ''];
+    }
+
+    if (startsWith($queryString, 'req=')) {
+        $request = substr($queryString, strlen('req='));
+        if (substr($request, 0, 1) !== '/') {
+            errorExit("First ?req= param should be an absolute path: '" . $request . "'");
+        }
+        return ['statusOnly' => false, 'request' => $request];
+    }
+
+    errorExit("The param should be 'status' or 'req=...', but is: '" . $queryString . "'");
+}
+
+// ------------------------------------------------------------
+// Main script flow
+// ------------------------------------------------------------
+
 debug_log('Proxy v1');
 
 // Let the webserver time us out in its own good time.
@@ -217,20 +242,7 @@ $pidfile = "$tmp_dir/coolwsd.pid";
 
 // avoid unwanted escaping of req= parameter
 $request = $_SERVER['QUERY_STRING'];
-// only asking for status?
-$statusOnly = false;
-
-// handle parameters
-if (startsWith($request, 'status')) {
-    $request = '';
-    $statusOnly = true;
-} else if (startsWith($request, 'req=')) {
-    $request = substr($request, strlen('req='));
-    if (substr($request, 0, 1) !== '/')
-        errorExit("First ?req= param should be an absolute path: '" . $request . "'");
-} else {
-    errorExit("The param should be 'status' or 'req=...', but is: '" . $request . "'");
-}
+[$statusOnly, $request] = parseProxyMode($request);
 
 debug_log("get URI " . $request);
 
