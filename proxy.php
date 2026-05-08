@@ -28,7 +28,7 @@ function debug_log($msg)
     // error_log("richdocumentscode (proxy.php) debug, PID: " . getmypid() . ", Message: $msg");
 }
 
-function errorExit($msg)
+function exitWithError($msg)
 {
     http_response_code(400);
     print "<html><body>\n";
@@ -212,12 +212,12 @@ function parseProxyMode(string $queryString): array
     if (str_starts_with($queryString, 'req=')) {
         $request = substr($queryString, strlen('req='));
         if (substr($request, 0, 1) !== '/') {
-            errorExit("First ?req= param should be an absolute path: '" . $request . "'");
+            exitWithError("First ?req= param should be an absolute path: '" . $request . "'");
         }
         return ['statusOnly' => false, 'request' => $request];
     }
 
-    errorExit("The param should be 'status' or 'req=...', but is: '" . $queryString . "'");
+    exitWithError("The param should be 'status' or 'req=...', but is: '" . $queryString . "'");
 }
 
 function getProxyScheme(): string
@@ -319,7 +319,7 @@ function rebuildMultipartBody(array $headers): string
         $multiBody .= "Content-Disposition: form-data; name=\"file\"; filename=\"" . $file['name'] . "\"\r\n";
         $multiBody .= "Content-Type: " . $file['type'] . "\r\n\r\n";
         if ($file['tmp_name'] === '') {
-            errorExit("File " . $file['name'] . " is larger than maximum upload file size");
+            exitWithError("File " . $file['name'] . " is larger than maximum upload file size");
         }
         $multiBody .= file_get_contents($file['tmp_name']) . "\r\n";
     }
@@ -362,7 +362,7 @@ function streamCoolwsdResponse($local): void
         } elseif ($chunk === '') {
             debug_log("empty chunk last data");
             if ($parsingHeaders)
-                errorExit("No content in reply from coolwsd. Is SSL enabled in error ?");
+                exitWithError("No content in reply from coolwsd. Is SSL enabled in error ?");
             break;
         } elseif ($parsingHeaders) {
             $rest .= $chunk;
@@ -370,7 +370,7 @@ function streamCoolwsdResponse($local): void
             if (parseLastHeader($rest, $contentLength)) {
                 $parsingHeaders = false;
 
-                $extOut = fopen("php://output", "w") or errorExit("fundamental error opening PHP output");
+                $extOut = fopen("php://output", "w") or exitWithError("fundamental error opening PHP output");
                 fwrite($extOut, $rest);
                 $contentWritten += strlen($rest);
                 $rest = '';
@@ -414,7 +414,7 @@ $request = $_SERVER['QUERY_STRING'];
 debug_log("get URI " . $request);
 
 if ($request === '' && !$statusOnly)
-    errorExit("Missing, required req= parameter");
+    exitWithError("Missing, required req= parameter");
 
 if (str_starts_with($request, '/hosting/capabilities') && !isCoolwsdRunning()) {
     header('Content-type: application/json');
@@ -448,7 +448,7 @@ if (!$local)
 {
     $err = checkCoolwsdSetup();
     if (!empty($err))
-        errorExit($err);
+        exitWithError($err);
     else if (!isCoolwsdRunning())
         startCoolwsd();
 
@@ -469,7 +469,7 @@ if (!$local)
 }
 
 if (!$local) {
-    errorExit("Timed out opening local socket: $errno - $errstr");
+    exitWithError("Timed out opening local socket: $errno - $errstr");
 }
 
 // Read request headers so they can be forwarded to coolwsd.
