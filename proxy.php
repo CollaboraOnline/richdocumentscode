@@ -220,7 +220,7 @@ function parseProxyMode(string $queryString): array
     exitWithError("The param should be 'status' or 'req=...', but is: '" . $queryString . "'");
 }
 
-function getProxyScheme(): string
+function getRequestScheme(): string
 {
     if ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
         || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
@@ -441,7 +441,7 @@ if ($statusOnly) {
 }
 
 // Base URL for proxying back into this script.
-$proxyURL = getProxyScheme();
+$proxyURL = getRequestScheme();
 
 // Start coolwsd if necessary.
 if (!$local)
