@@ -203,7 +203,7 @@ function isMultipartRequest($headers)
     return strpos(strtolower($contentType), 'multipart/form-data') !== false;
 }
 
-function parseProxyMode(string $queryString): array
+function parseRequestMode(string $queryString): array
 {
     if (str_starts_with($queryString, 'status')) {
         return ['statusOnly' => true, 'request' => ''];
@@ -409,7 +409,7 @@ $pidfile = "$tmp_dir/coolwsd.pid";
 
 // Avoid unwanted escaping of the req= parameter.
 $request = $_SERVER['QUERY_STRING'];
-[$statusOnly, $request] = parseProxyMode($request);
+[$statusOnly, $request] = parseRequestMode($request);
 
 debug_log("get URI " . $request);
 
