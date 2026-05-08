@@ -415,7 +415,7 @@ $pidFile = "$tmpDir/coolwsd.pid";
 
 // Avoid unwanted escaping of the req= parameter.
 $request = $_SERVER['QUERY_STRING'];
-[$statusOnly, $request] = parseRequestMode($request);
+['statusOnly' => $statusOnly, 'request' => $request] = parseRequestMode($request);
 
 debugLog("get URI " . $request);
 
