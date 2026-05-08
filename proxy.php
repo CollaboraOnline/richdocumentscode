@@ -22,13 +22,13 @@
 // Helper functions
 // ------------------------------------------------------------
 
-function debugLog($msg)
+function debugLog(string $msg): void
 {
     // Disabled for production; enable for debugging
     // error_log("richdocumentscode (proxy.php) debug, PID: " . getmypid() . ", Message: $msg");
 }
 
-function exitWithError($msg)
+function exitWithError(string $msg): void
 {
     http_response_code(400);
     print "<html><body>\n";
@@ -39,6 +39,9 @@ function exitWithError($msg)
     exit();
 }
 
+/**
+ * @return string|int Returns the process ID as a string, or 0 if the server is not running.
+ */
 function getCoolwsdPid()
 {
     global $pidfile;
@@ -55,6 +58,9 @@ function getCoolwsdPid()
     return 0;
 }
 
+/**
+ * @return bool|int Returns true if the process is running, false if not, or 0 if no PID file exists.
+ */
 function isCoolwsdRunning()
 {
     $pid = getCoolwsdPid();
@@ -64,7 +70,7 @@ function isCoolwsdRunning()
     return posix_kill($pid,0);
 }
 
-function startCoolwsd()
+function startCoolwsd(): void
 {
     global $appImage;
     global $pidfile;
@@ -124,7 +130,7 @@ function startCoolwsd()
         unlink("$lockfile");
 }
 
-function stopCoolwsd()
+function stopCoolwsd(): void
 {
     $pid = getCoolwsdPid();
     if (posix_kill($pid,0))
@@ -136,7 +142,7 @@ function stopCoolwsd()
 
 // Check whether the environment is suitable for running coolwsd.
 // Returns an error ID if a problem is found.
-function checkCoolwsdSetup()
+function checkCoolwsdSetup(): string
 {
     global $appImage;
 
@@ -171,7 +177,7 @@ function checkCoolwsdSetup()
 }
 
 // Parse upstream response headers, forward them with header(), and detect the end of the header block.
-function parseAndForwardHeaders(&$chunk, &$contentLength)
+function parseAndForwardHeaders(&$chunk, &$contentLength): bool
 {
     $headers = explode("\r\n", $chunk);
     debugLog("Headers: $chunk");
@@ -197,7 +203,7 @@ function parseAndForwardHeaders(&$chunk, &$contentLength)
     return $endOfHeaders;
 }
 
-function isMultipartRequest($headers)
+function isMultipartRequest(array $headers): bool
 {
     $contentType = $headers['Content-Type'] ?? $headers['content-type'] ?? '';
     return strpos(strtolower($contentType), 'multipart/form-data') !== false;
