@@ -22,7 +22,7 @@
 // Helper functions
 // ------------------------------------------------------------
 
-function debug_log($msg)
+function debugLog($msg)
 {
     // Disabled for production; enable for debugging
     // error_log("richdocumentscode (proxy.php) debug, PID: " . getmypid() . ", Message: $msg");
@@ -47,11 +47,11 @@ function getCoolwsdPid()
     if (file_exists($pidfile))
     {
         $pid = rtrim(file_get_contents($pidfile));
-        debug_log("Coolwsd server running with pid: " . $pid);
+        debugLog("Coolwsd server running with pid: " . $pid);
         return $pid;
     }
 
-    debug_log("Coolwsd server is not running.");
+    debugLog("Coolwsd server is not running.");
     return 0;
 }
 
@@ -81,11 +81,11 @@ function startCoolwsd()
     // Check whether IPv6 has been disabled.
     $IPv4only = "";
     $launchCmd = "ip -6 addr";
-    debug_log("Testing disabled IPv6: $launchCmd");
+    debugLog("Testing disabled IPv6: $launchCmd");
     exec($launchCmd, $output, $return);
     if (implode("",$output)=="")
     {
-        debug_log("IPv6 disabled. Will launch coolwsd with IPv4-only option.");
+        debugLog("IPv6 disabled. Will launch coolwsd with IPv4-only option.");
         $IPv4only = "--o:net.proto=IPv4";
     }
 
@@ -109,10 +109,10 @@ function startCoolwsd()
         if (file_exists("$pidfile"))
             unlink("$pidfile");
 
-        debug_log("Launch the coolwsd server: $launchCmd");
+        debugLog("Launch the coolwsd server: $launchCmd");
         exec($launchCmd, $output, $return);
         if ($return)
-            debug_log("Failed to launch server at $appImage.");
+            debugLog("Failed to launch server at $appImage.");
 
         fclose($lock);
     }
@@ -129,7 +129,7 @@ function stopCoolwsd()
     $pid = getCoolwsdPid();
     if (posix_kill($pid,0))
     {
-        debug_log("Stopping the coolwsd server with pid: $pid");
+        debugLog("Stopping the coolwsd server with pid: $pid");
         posix_kill($pid, 15 /*SIGTERM*/);
     }
 }
@@ -174,12 +174,12 @@ function checkCoolwsdSetup()
 function forwardResponseHeaders(&$chunk, &$contentLength)
 {
     $headers = explode("\r\n", $chunk);
-    debug_log("Headers: $chunk");
+    debugLog("Headers: $chunk");
     $chop = 0;
     $endOfHeaders = false;
     foreach ($headers as $h)
     {
-        debug_log("send: $h");
+        debugLog("send: $h");
         $chop += strlen($h) + 2;
         if ($h === '')
         {
@@ -297,8 +297,8 @@ function handleStatusRequest($local, $errno): void
 
 function rebuildMultipartBody(array $headers): string
 {
-    debug_log("PHP's RFC 1867 upload handling leaves php://input empty for multipart requests.");
-    debug_log("Reconstructing multipart body - Files: " . count($_FILES) . ", Form fields: " . count($_POST));
+    debugLog("PHP's RFC 1867 upload handling leaves php://input empty for multipart requests.");
+    debugLog("Reconstructing multipart body - Files: " . count($_FILES) . ", Form fields: " . count($_POST));
 
     $type = $headers['Content-Type'] ?? $headers['content-type'] ?? '';
     $boundary = trim(explode('boundary=', $type)[1]);
@@ -326,17 +326,17 @@ function rebuildMultipartBody(array $headers): string
 
     $multiBody .= "--" . $boundary . "--\r\n";
 
-    debug_log("Reconstructed body: $multiBody");
+    debugLog("Reconstructed body: $multiBody");
     return $multiBody;
 }
 
 function forwardRequestHeaders($local, array $headers, string $body, string $multiBody): void
 {
     foreach ($headers as $header => $value) {
-        debug_log("$header: $value\n");
+        debugLog("$header: $value\n");
 
         if ($multiBody !== '' && $header === 'Content-Length') {
-            debug_log("Substitute Content-Length of " . $value . " with " . strlen($body));
+            debugLog("Substitute Content-Length of " . $value . " with " . strlen($body));
             $value = strlen($body);
         }
 
@@ -357,16 +357,16 @@ function streamCoolwsdResponse($local): void
             $error = error_get_last();
             $errorMessage = $error ? implode(' ', $error) : 'No error';
             echo "ERROR ! $errorMessage\n";
-            debug_log("error on chunk: $errorMessage");
+            debugLog("error on chunk: $errorMessage");
             break;
         } elseif ($chunk === '') {
-            debug_log("empty chunk last data");
+            debugLog("empty chunk last data");
             if ($parsingHeaders)
                 exitWithError("No content in reply from coolwsd. Is SSL enabled in error ?");
             break;
         } elseif ($parsingHeaders) {
             $rest .= $chunk;
-            debug_log("build headers to: $rest\n");
+            debugLog("build headers to: $rest\n");
             if (forwardResponseHeaders($rest, $contentLength)) {
                 $parsingHeaders = false;
 
@@ -374,17 +374,17 @@ function streamCoolwsdResponse($local): void
                 fwrite($extOut, $rest);
                 $contentWritten += strlen($rest);
                 $rest = '';
-                debug_log("passed last headers");
+                debugLog("passed last headers");
             }
         } else {
             fwrite($extOut, $chunk);
             $contentWritten += strlen($chunk);
-            debug_log("proxy : " . strlen($chunk) . " bytes");
+            debugLog("proxy : " . strlen($chunk) . " bytes");
         }
 
         if ($contentLength != -1 && $contentWritten == $contentLength)
         {
-            debug_log("reached ContentLength of $contentLength bytes");
+            debugLog("reached ContentLength of $contentLength bytes");
             break;
         }
 
@@ -395,7 +395,7 @@ function streamCoolwsdResponse($local): void
 // Main script flow
 // ------------------------------------------------------------
 
-debug_log('Proxy v1');
+debugLog('Proxy v1');
 
 // Let the webserver time us out in its own good time.
 set_time_limit(0);
@@ -411,7 +411,7 @@ $pidfile = "$tmp_dir/coolwsd.pid";
 $request = $_SERVER['QUERY_STRING'];
 [$statusOnly, $request] = parseRequestMode($request);
 
-debug_log("get URI " . $request);
+debugLog("get URI " . $request);
 
 if ($request === '' && !$statusOnly)
     exitWithError("Missing, required req= parameter");
@@ -457,12 +457,12 @@ if (!$local)
         $local = @fsockopen("localhost", 9983, $errno, $errstr, 15);
         if ($errno === 111) {
             if($logonce) {
-               debug_log("Can't yet connect to socket so sleep");
+               debugLog("Can't yet connect to socket so sleep");
                $logonce = false;
             }
             usleep(50 * 1000); // 50ms.
         } else {
-            debug_log("Connected to the backend socket.");
+            debugLog("Connected to the backend socket.");
             break;
         }
     }
@@ -476,13 +476,13 @@ if (!$local) {
 $headers = getallheaders();
 
 $proxyURL .= $_SERVER['HTTP_HOST'] . $_SERVER['SCRIPT_NAME'] . '?req=';
-debug_log("ProxyPrefix: '$proxyURL'");
+debugLog("ProxyPrefix: '$proxyURL'");
 
 $realRequest = $_SERVER['REQUEST_METHOD'] . " " . $request . " " . $_SERVER['SERVER_PROTOCOL'];
-debug_log("Onward request is: '$realRequest'");
+debugLog("Onward request is: '$realRequest'");
 
 $body = file_get_contents('php://input');
-debug_log("request content: '$body'");
+debugLog("request content: '$body'");
 
 // PHP's RFC 1867 upload handling leaves php://input empty for multipart requests.
 $multiBody = '';
@@ -500,11 +500,11 @@ fwrite($local, "ProxyPrefix: " . $proxyURL . "\r\n");
 fwrite($local, "\r\n");
 fwrite($local, $body);
 
-debug_log("waiting for response");
+debugLog("waiting for response");
 
 streamCoolwsdResponse($local);
 
-debug_log("closing local socket");
+debugLog("closing local socket");
 fclose($local);
 
 ?>
