@@ -236,6 +236,69 @@ function getProxyScheme(): string
     return 'http://';
 }
 
+function handleStatusRequest($local, $errno): void
+{
+    header('Content-type: application/json');
+    header('Cache-Control: no-store');
+
+    if (!$local) {
+        $err = checkCoolwsdSetup();
+        if (!empty($err)) {
+            print '{"status":"error","error":"' . $err . '"}';
+            return;
+        }
+
+        if (!isCoolwsdRunning()) {
+            startCoolwsd();
+            print '{"status":"starting"}';
+            return;
+        }
+    } elseif ($errno === 111) {
+        print '{"status":"starting"}';
+        return;
+    }
+
+    $response = file_get_contents(
+        "http://localhost:9983/hosting/capabilities",
+        0,
+        stream_context_create(["http" => ["timeout" => 1]])
+    );
+
+    if ($response) {
+		// Version check.
+        $obj = json_decode($response);
+        $expVer = '%COOLWSD_VERSION_HASH%';
+        $actVer = substr($obj->{'productVersionHash'}, 0, strlen($expVer));
+
+		// deliberately split so that sed does not touch this during build-time
+        if ($actVer !== $expVer && $expVer !== '%' . 'COOLWSD_VERSION_HASH' . '%') {
+			// Old/unexpected server version; restart.
+            error_log("Old server found, restarting. Expected hash $expVer but found $actVer.");
+            stopCoolwsd();
+
+			// wait 10 seconds max
+            for ($i = 0; isCoolwsdRunning() && ($i < 10); $i++) {
+                sleep(1);
+            }
+
+			// somebody else might have restarted it in the meantime
+            if (!isCoolwsdRunning()) {
+                startCoolwsd();
+            }
+
+            print '{"status":"restarting"}';
+        } else {
+            print '{"status":"OK"}';
+        }
+    } else {
+        print '{"status":"starting"}';
+    }
+
+    if ($local) {
+        fclose($local);
+    }
+}
+
 // ------------------------------------------------------------
 // Main script flow
 // ------------------------------------------------------------
@@ -282,47 +345,7 @@ $local = @fsockopen("localhost", 9983, $errno, $errstr, 3);
 
 // Return the status and exit if it is a ?status request
 if ($statusOnly) {
-    header('Content-type: application/json');
-    header('Cache-Control: no-store');
-    if (!$local) {
-        $err = checkCoolwsdSetup();
-        if (!empty($err))
-            print '{"status":"error","error":"' . $err . '"}';
-        else if (!isCoolwsdRunning()) {
-            startCoolwsd();
-            print '{"status":"starting"}';
-        }
-    } else if ($errno === 111) {
-        print '{"status":"starting"}';
-    } else {
-        $response = file_get_contents("http://localhost:9983/hosting/capabilities", 0, stream_context_create(["http"=>["timeout"=>1]]));
-        if ($response) {
-            // Version check.
-            $obj = json_decode($response);
-            $expVer = '%COOLWSD_VERSION_HASH%';
-            $actVer = substr($obj->{'productVersionHash'}, 0, strlen($expVer));
-            if ($actVer !== $expVer && $expVer !== '%' . 'COOLWSD_VERSION_HASH' . '%') { // deliberately split so that sed does not touch this during build-time
-                // Old/unexpected server version; restart.
-                error_log("Old server found, restarting. Expected hash $expVer but found $actVer.");
-                stopCoolwsd();
-                // wait 10 seconds max
-                for ($i = 0; isCoolwsdRunning() && ($i < 10); $i++)
-                    sleep(1);
-
-                // somebody else might have restarted it in the meantime
-                if (!isCoolwsdRunning())
-                    startCoolwsd();
-
-                print '{"status":"restarting"}';
-            }
-            else
-                print '{"status":"OK"}';
-        }
-        else
-            print '{"status":"starting"}';
-        fclose($local);
-    }
-
+    handleStatusRequest($local, $errno);
     exit();
 }
 
