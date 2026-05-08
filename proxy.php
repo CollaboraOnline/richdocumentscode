@@ -170,8 +170,8 @@ function checkCoolwsdSetup()
     return '';
 }
 
-// Parse upstream response headers and forward them with header().
-function forwardResponseHeaders(&$chunk, &$contentLength)
+// Parse upstream response headers, forward them with header(), and detect the end of the header block.
+function parseAndForwardHeaders(&$chunk, &$contentLength)
 {
     $headers = explode("\r\n", $chunk);
     debugLog("Headers: $chunk");
@@ -367,7 +367,7 @@ function streamCoolwsdResponse($local): void
         } elseif ($parsingHeaders) {
             $rest .= $chunk;
             debugLog("build headers to: $rest\n");
-            if (forwardResponseHeaders($rest, $contentLength)) {
+            if (parseAndForwardHeaders($rest, $contentLength)) {
                 $parsingHeaders = false;
 
                 $extOut = fopen("php://output", "w") or exitWithError("fundamental error opening PHP output");
