@@ -35,18 +35,6 @@ function errorExit($msg)
     exit();
 }
 
-debug_log('Proxy v1');
-
-// Let the webserver time us out in its own good time.
-set_time_limit(0);
-
-// Where the appimage is installed
-$appImage = __DIR__ . '/collabora/Collabora_Online.AppImage';
-
-$tmp_dir = ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : sys_get_temp_dir();
-$lockfile = "$tmp_dir/coolwsd.lock";
-$pidfile = "$tmp_dir/coolwsd.pid";
-
 function getCoolwsdPid()
 {
     global $pidfile;
@@ -209,6 +197,24 @@ function parseLastHeader(&$chunk, &$contentLength)
     return $endOfHeaders;
 }
 
+function isMultipartRequest($headers)
+{
+    $contentType = $headers['Content-Type'] ?? $headers['content-type'] ?? '';
+    return strpos(strtolower($contentType), 'multipart/form-data') !== false;
+}
+
+debug_log('Proxy v1');
+
+// Let the webserver time us out in its own good time.
+set_time_limit(0);
+
+// Where the appimage is installed
+$appImage = __DIR__ . '/collabora/Collabora_Online.AppImage';
+
+$tmp_dir = ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : sys_get_temp_dir();
+$lockfile = "$tmp_dir/coolwsd.lock";
+$pidfile = "$tmp_dir/coolwsd.pid";
+
 // avoid unwanted escaping of req= parameter
 $request = $_SERVER['QUERY_STRING'];
 // only asking for status?
@@ -295,6 +301,7 @@ if ($statusOnly) {
 
     exit();
 }
+
 // URL into this server of the proxy script.
 if ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
 	|| (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https' )
@@ -346,12 +353,6 @@ debug_log("Onward request is: '$realRequest'");
 $body = file_get_contents('php://input');
 debug_log("request content: '$body'");
 
-function isMultipartRequest($headers)
-{
-    $contentType = $headers['Content-Type'] ?? $headers['content-type'] ?? '';
-    return strpos(strtolower($contentType), 'multipart/form-data') !== false;
-}
-
 // Oh dear - PHP's rfc1867 handling doesn't give any php://input to work with in this case.
 $multiBody = '';
 if ($body === '' && isMultipartRequest($headers)) {
@@ -360,7 +361,7 @@ if ($body === '' && isMultipartRequest($headers)) {
 
     $type = isset($headers['Content-Type']) ? $headers['Content-Type'] : $headers['content-type'];
     $boundary = trim(explode('boundary=', $type)[1]);
-    foreach ($_REQUEST as $key=>$value) {
+    foreach ($_REQUEST as $key => $value) {
         if ($key === 'req') {
             continue;
         }
