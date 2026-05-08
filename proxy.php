@@ -299,6 +299,41 @@ function handleStatusRequest($local, $errno): void
     }
 }
 
+function rebuildMultipartBody(array $headers): string
+{
+    debug_log("Oh dear - PHP's rfc1867 handling doesn't give any php://input to work with");
+    debug_log("Reconstructing multipart body - Files: " . count($_FILES) . ", Form fields: " . count($_POST));
+
+    $type = $headers['Content-Type'] ?? $headers['content-type'] ?? '';
+    $boundary = trim(explode('boundary=', $type)[1]);
+
+    $multiBody = '';
+
+    foreach ($_REQUEST as $key => $value) {
+        if ($key === 'req') {
+            continue;
+        }
+        $multiBody .= "--" . $boundary . "\r\n";
+        $multiBody .= "Content-Disposition: form-data; name=\"$key\"\r\n\r\n";
+        $multiBody .= "$value\r\n";
+    }
+
+    foreach ($_FILES as $file) {
+        $multiBody .= "--" . $boundary . "\r\n";
+        $multiBody .= "Content-Disposition: form-data; name=\"file\"; filename=\"" . $file['name'] . "\"\r\n";
+        $multiBody .= "Content-Type: " . $file['type'] . "\r\n\r\n";
+        if ($file['tmp_name'] === '') {
+            errorExit("File " . $file['name'] . " is larger than maximum up-load file-size");
+        }
+        $multiBody .= file_get_contents($file['tmp_name']) . "\r\n";
+    }
+
+    $multiBody .= "--" . $boundary . "--\r\n";
+
+    debug_log("Reconstructed body: $multiBody");
+    return $multiBody;
+}
+
 // ------------------------------------------------------------
 // Main script flow
 // ------------------------------------------------------------
@@ -396,32 +431,8 @@ debug_log("request content: '$body'");
 // Oh dear - PHP's rfc1867 handling doesn't give any php://input to work with in this case.
 $multiBody = '';
 if ($body === '' && isMultipartRequest($headers)) {
-    debug_log("Oh dear - PHP's rfc1867 handling doesn't give any php://input to work with");
-	debug_log("Reconstructing multipart body - Files: " . count($_FILES) . ", Form fields: " . count($_POST));
-
-    $type = isset($headers['Content-Type']) ? $headers['Content-Type'] : $headers['content-type'];
-    $boundary = trim(explode('boundary=', $type)[1]);
-    foreach ($_REQUEST as $key => $value) {
-        if ($key === 'req') {
-            continue;
-        }
-        $multiBody .= "--" . $boundary . "\r\n";
-        $multiBody .= "Content-Disposition: form-data; name=\"$key\"\r\n\r\n";
-        $multiBody .= "$value\r\n";
-    }
-    foreach ($_FILES as $file) {
-        $multiBody .= "--" . $boundary . "\r\n";
-        $multiBody .= "Content-Disposition: form-data; name=\"file\"; filename=\"" . $file['name'] . "\"\r\n";
-        $multiBody .= "Content-Type: " . $file['type'] . "\r\n\r\n";
-        if ($file['tmp_name'] === '') {
-            errorExit("File " . $file['name'] . " is larger than maximum up-load file-size");
-        }
-        $multiBody .= file_get_contents($file['tmp_name']) . "\r\n";
-    }
-    $multiBody .= "--" . $boundary . "--\r\n";
-    $body = $multiBody;
-
-    debug_log("Reconstructed body: $body");
+    $body = rebuildMultipartBody($headers);
+    $multiBody = $body;
 }
 
 fwrite($local, $realRequest . "\r\n");
