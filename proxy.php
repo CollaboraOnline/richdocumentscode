@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-// test with:
+// Example local test URL:
 // http://localhost/richproxy/proxy.php?req=/browser/dist/cool.html?file_path=file:///opt/libreoffice/online/test/data/hello-world.odt
 
 // ------------------------------------------------------------
@@ -78,7 +78,7 @@ function startCoolwsd()
         $remoteFontConfig = "--o:remote_font_config.url=" . $remoteFontConfigUrl;
     }
 
-    // Check if IPv6 has been disabled
+    // Check whether IPv6 has been disabled.
     $IPv4only = "";
     $launchCmd = "ip -6 addr";
     debug_log("Testing disabled IPv6: $launchCmd");
@@ -89,23 +89,23 @@ function startCoolwsd()
         $IPv4only = "--o:net.proto=IPv4";
     }
 
-    // Extract the AppImage if FUSE is not available
-    // net.lok_allow.host[14] is the next empty slot after the last element of the default list
-    // when lok_allow does not contain the Nextcloud host, it is not possible to insert image from Nextcloud
-    // we have to set explicitly, because storage.wopi.alias_groups[@mode] is 'first' in case of richdocumentscode
+    // Launch the AppImage normally, with a fallback for environments without FUSE.
+    // net.lok_allow.host[14] is the next empty slot after the last element of the default list.
+    // If lok_allow does not contain the Nextcloud host, it is not possible to insert images from Nextcloud.
+    // We have to set it explicitly because storage.wopi.alias_groups[@mode] is 'first' in case of richdocumentscode.
     $lok_allow = "--o:net.lok_allow.host[14]=" . escapeshellarg($_SERVER['HTTP_HOST']);
     $launchCmd = "bash -c \"( $appImage $remoteFontConfig $IPv4only $lok_allow --pidfile=$pidfile || $appImage --appimage-extract-and-run $remoteFontConfig $IPv4only $lok_allow --pidfile=$pidfile) >/dev/null & disown\"";
 
-    // Remove stale lock file (just in case)
+    // Remove a stale lock file if one exists.
     if (file_exists("$lockfile"))
         if (time() - filectime("$lockfile") > 60 * 5)
             unlink("$lockfile");
 
-    // Prevent second start
+    // Prevent a second concurrent start.
     $lock = @fopen("$lockfile", "x");
     if ($lock)
     {
-        // We start a new server, we don't need stale pidfile around
+        // We are starting a new server, so we do not need a stale pidfile.
         if (file_exists("$pidfile"))
             unlink("$pidfile");
 
@@ -134,8 +134,8 @@ function stopCoolwsd()
     }
 }
 
-// Check that the setup is suitable for running the coolwsd.
-// Returns the error ID if we find a problem.
+// Check whether the environment is suitable for running coolwsd.
+// Returns an error ID if a problem is found.
 function checkCoolwsdSetup()
 {
     global $appImage;
@@ -174,7 +174,7 @@ function startsWith($string, $with) {
     return (substr($string, 0, strlen($with)) === $with);
 }
 
-// parse and emit headers using 'header' ...
+// Parse upstream response headers and forward them with header().
 function parseLastHeader(&$chunk, &$contentLength)
 {
     $headers = explode("\r\n", $chunk);
@@ -196,7 +196,7 @@ function parseLastHeader(&$chunk, &$contentLength)
         }
         header($h);
     }
-    // keep looking for the next header.
+    // Keep looking for the next header fragment.
     $chunk = substr($chunk, $chop);
     return $endOfHeaders;
 }
@@ -229,8 +229,8 @@ function getProxyScheme(): string
     if ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
         || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
         || (isset($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on')
-	   ) {
-    	return 'https://';
+    ) {
+        return 'https://';
     }
 
     return 'http://';
@@ -265,23 +265,23 @@ function handleStatusRequest($local, $errno): void
     );
 
     if ($response) {
-		// Version check.
+        // Version check.
         $obj = json_decode($response);
         $expVer = '%COOLWSD_VERSION_HASH%';
         $actVer = substr($obj->{'productVersionHash'}, 0, strlen($expVer));
 
-		// deliberately split so that sed does not touch this during build-time
+        // Deliberately split so that sed does not touch this during build-time.
         if ($actVer !== $expVer && $expVer !== '%' . 'COOLWSD_VERSION_HASH' . '%') {
-			// Old/unexpected server version; restart.
+            // Old or unexpected server version; restart.
             error_log("Old server found, restarting. Expected hash $expVer but found $actVer.");
             stopCoolwsd();
 
-			// wait 10 seconds max
+            // Wait up to 10 seconds for shutdown.
             for ($i = 0; isCoolwsdRunning() && ($i < 10); $i++) {
                 sleep(1);
             }
 
-			// somebody else might have restarted it in the meantime
+            // Another process may have restarted it in the meantime.
             if (!isCoolwsdRunning()) {
                 startCoolwsd();
             }
@@ -301,7 +301,7 @@ function handleStatusRequest($local, $errno): void
 
 function rebuildMultipartBody(array $headers): string
 {
-    debug_log("Oh dear - PHP's rfc1867 handling doesn't give any php://input to work with");
+    debug_log("PHP's RFC 1867 upload handling leaves php://input empty for multipart requests.");
     debug_log("Reconstructing multipart body - Files: " . count($_FILES) . ", Form fields: " . count($_POST));
 
     $type = $headers['Content-Type'] ?? $headers['content-type'] ?? '';
@@ -323,7 +323,7 @@ function rebuildMultipartBody(array $headers): string
         $multiBody .= "Content-Disposition: form-data; name=\"file\"; filename=\"" . $file['name'] . "\"\r\n";
         $multiBody .= "Content-Type: " . $file['type'] . "\r\n\r\n";
         if ($file['tmp_name'] === '') {
-            errorExit("File " . $file['name'] . " is larger than maximum up-load file-size");
+            errorExit("File " . $file['name'] . " is larger than maximum upload file size");
         }
         $multiBody .= file_get_contents($file['tmp_name']) . "\r\n";
     }
@@ -404,14 +404,14 @@ debug_log('Proxy v1');
 // Let the webserver time us out in its own good time.
 set_time_limit(0);
 
-// Where the appimage is installed
+// Where the AppImage is installed.
 $appImage = __DIR__ . '/collabora/Collabora_Online.AppImage';
 
 $tmp_dir = ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : sys_get_temp_dir();
 $lockfile = "$tmp_dir/coolwsd.lock";
 $pidfile = "$tmp_dir/coolwsd.pid";
 
-// avoid unwanted escaping of req= parameter
+// Avoid unwanted escaping of the req= parameter.
 $request = $_SERVER['QUERY_STRING'];
 [$statusOnly, $request] = parseProxyMode($request);
 
@@ -435,20 +435,19 @@ if (startsWith($request, '/hosting/capabilities') && !isCoolwsdRunning()) {
     exit();
 }
 
-// If we can't get a socket open in 3 seconds when that is backed by
-// a dedicated thread, then we have a server missing in action.
+// If localhost:9983 does not accept connections within 3 seconds, treat the backend as unavailable.
 $local = @fsockopen("localhost", 9983, $errno, $errstr, 3);
 
-// Return the status and exit if it is a ?status request
+// Return the status response immediately if this is a ?status request.
 if ($statusOnly) {
     handleStatusRequest($local, $errno);
     exit();
 }
 
-// URL into this server of the proxy script.
+// Base URL for proxying back into this script.
 $proxyURL = getProxyScheme();
 
-// Start the appimage if necessary
+// Start coolwsd if necessary.
 if (!$local)
 {
     $err = checkCoolwsdSetup();
@@ -467,7 +466,7 @@ if (!$local)
             }
             usleep(50 * 1000); // 50ms.
         } else {
-            debug_log("connected?");
+            debug_log("Connected to the backend socket.");
             break;
         }
     }
@@ -477,7 +476,7 @@ if (!$local) {
     errorExit("Timed out opening local socket: $errno - $errstr");
 }
 
-// Fetch our headers for later
+// Read request headers so they can be forwarded to coolwsd.
 $headers = getallheaders();
 
 $proxyURL .= $_SERVER['HTTP_HOST'] . $_SERVER['SCRIPT_NAME'] . '?req=';
@@ -489,7 +488,7 @@ debug_log("Onward request is: '$realRequest'");
 $body = file_get_contents('php://input');
 debug_log("request content: '$body'");
 
-// Oh dear - PHP's rfc1867 handling doesn't give any php://input to work with in this case.
+// PHP's RFC 1867 upload handling leaves php://input empty for multipart requests.
 $multiBody = '';
 if ($body === '' && isMultipartRequest($headers)) {
     $body = rebuildMultipartBody($headers);
@@ -498,7 +497,7 @@ if ($body === '' && isMultipartRequest($headers)) {
 
 fwrite($local, $realRequest . "\r\n");
 
-// Send the headers on ...
+// Forward request headers to the backend.
 forwardRequestHeaders($local, $headers, $body, $multiBody);
 
 fwrite($local, "ProxyPrefix: " . $proxyURL . "\r\n");
