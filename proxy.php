@@ -348,6 +348,53 @@ function forwardRequestHeaders($local, array $headers, string $body, string $mul
     }
 }
 
+function streamCoolwsdResponse($local): void
+{
+    $rest = '';
+    $contentLength = -1;
+    $contentWritten = 0;
+    $parsingHeaders = true;
+
+    do {
+        $chunk = fread($local, 65536);
+        if ($chunk === false) {
+            $error = error_get_last();
+            $errorMessage = $error ? implode(' ', $error) : 'No error';
+            echo "ERROR ! $errorMessage\n";
+            debug_log("error on chunk: $errorMessage");
+            break;
+        } elseif ($chunk === '') {
+            debug_log("empty chunk last data");
+            if ($parsingHeaders)
+                errorExit("No content in reply from coolwsd. Is SSL enabled in error ?");
+            break;
+        } elseif ($parsingHeaders) {
+            $rest .= $chunk;
+            debug_log("build headers to: $rest\n");
+            if (parseLastHeader($rest, $contentLength)) {
+                $parsingHeaders = false;
+
+                $extOut = fopen("php://output", "w") or errorExit("fundamental error opening PHP output");
+                fwrite($extOut, $rest);
+                $contentWritten += strlen($rest);
+                $rest = '';
+                debug_log("passed last headers");
+            }
+        } else {
+            fwrite($extOut, $chunk);
+            $contentWritten += strlen($chunk);
+            debug_log("proxy : " . strlen($chunk) . " bytes");
+        }
+
+        if ($contentLength != -1 && $contentWritten == $contentLength)
+        {
+            debug_log("reached ContentLength of $contentLength bytes");
+            break;
+        }
+
+    } while(true);
+}
+
 // ------------------------------------------------------------
 // Main script flow
 // ------------------------------------------------------------
@@ -460,48 +507,7 @@ fwrite($local, $body);
 
 debug_log("waiting for response");
 
-$rest = '';
-$contentLength = -1;
-$contentWritten = 0;
-$parsingHeaders = true;
-do {
-    $chunk = fread($local, 65536);
-    if($chunk === false) {
-        $error = error_get_last();
-        $errorMessage = $error ? implode(' ', $error) : 'No error';
-        echo "ERROR ! $errorMessage\n";
-        debug_log("error on chunk: $errorMessage");
-        break;
-    } elseif($chunk === '') {
-        debug_log("empty chunk last data");
-        if ($parsingHeaders)
-            errorExit("No content in reply from coolwsd. Is SSL enabled in error ?");
-        break;
-    } elseif ($parsingHeaders) {
-        $rest .= $chunk;
-        debug_log("build headers to: $rest\n");
-        if (parseLastHeader($rest, $contentLength)) {
-            $parsingHeaders = false;
-
-            $extOut = fopen("php://output", "w") or errorExit("fundamental error opening PHP output");
-            fwrite($extOut, $rest);
-            $contentWritten += strlen($rest);
-            $rest = '';
-            debug_log("passed last headers");
-        }
-    } else {
-        fwrite($extOut, $chunk);
-        $contentWritten += strlen($chunk);
-        debug_log("proxy : " . strlen($chunk) . " bytes");
-    }
-
-    if ($contentLength != -1 && $contentWritten == $contentLength)
-    {
-        debug_log("reached ContentLength of $contentLength bytes");
-        break;
-    }
-
-} while(true);
+streamCoolwsdResponse($local);
 
 debug_log("closing local socket");
 fclose($local);
