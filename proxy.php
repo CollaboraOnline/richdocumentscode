@@ -44,12 +44,12 @@ function exitWithError(string $msg): void
  */
 function getCoolwsdPid()
 {
-    global $pidfile;
+    global $pidFile;
 
     clearstatcache();
-    if (file_exists($pidfile))
+    if (file_exists($pidFile))
     {
-        $pid = rtrim(file_get_contents($pidfile));
+        $pid = rtrim(file_get_contents($pidFile));
         debugLog("Coolwsd server running with pid: " . $pid);
         return $pid;
     }
@@ -73,8 +73,8 @@ function isCoolwsdRunning()
 function startCoolwsd(): void
 {
     global $appImage;
-    global $pidfile;
-    global $lockfile;
+    global $pidFile;
+    global $lockFile;
 
     // Remote font config URL (HTTPS only)
     $remoteFontConfig = "";
@@ -100,20 +100,20 @@ function startCoolwsd(): void
     // If lok_allow does not contain the Nextcloud host, it is not possible to insert images from Nextcloud.
     // We have to set it explicitly because storage.wopi.alias_groups[@mode] is 'first' in case of richdocumentscode.
     $lok_allow = "--o:net.lok_allow.host[14]=" . escapeshellarg($_SERVER['HTTP_HOST']);
-    $launchCmd = "bash -c \"( $appImage $remoteFontConfig $IPv4only $lok_allow --pidfile=$pidfile || $appImage --appimage-extract-and-run $remoteFontConfig $IPv4only $lok_allow --pidfile=$pidfile) >/dev/null & disown\"";
+    $launchCmd = "bash -c \"( $appImage $remoteFontConfig $IPv4only $lok_allow --pidfile=$pidFile || $appImage --appimage-extract-and-run $remoteFontConfig $IPv4only $lok_allow --pidfile=$pidFile) >/dev/null & disown\"";
 
     // Remove a stale lock file if one exists.
-    if (file_exists("$lockfile"))
-        if (time() - filectime("$lockfile") > 60 * 5)
-            unlink("$lockfile");
+    if (file_exists("$lockFile"))
+        if (time() - filectime("$lockFile") > 60 * 5)
+            unlink("$lockFile");
 
     // Prevent a second concurrent start.
-    $lock = @fopen("$lockfile", "x");
+    $lock = @fopen("$lockFile", "x");
     if ($lock)
     {
         // We are starting a new server, so we do not need a stale pidfile.
-        if (file_exists("$pidfile"))
-            unlink("$pidfile");
+        if (file_exists("$pidFile"))
+            unlink("$pidFile");
 
         debugLog("Launch the coolwsd server: $launchCmd");
         exec($launchCmd, $output, $return);
@@ -126,8 +126,8 @@ function startCoolwsd(): void
     while (!isCoolwsdRunning())
         sleep(1);
 
-    if (file_exists("$lockfile"))
-        unlink("$lockfile");
+    if (file_exists("$lockFile"))
+        unlink("$lockFile");
 }
 
 function stopCoolwsd(): void
@@ -238,12 +238,12 @@ function getRequestScheme(): string
     return 'http://';
 }
 
-function handleStatusRequest($local, $errno): void
+function handleStatusRequest($backendSocket, $errno): void
 {
     header('Content-type: application/json');
     header('Cache-Control: no-store');
 
-    if (!$local) {
+    if (!$backendSocket) {
         $err = checkCoolwsdSetup();
         if (!empty($err)) {
             print '{"status":"error","error":"' . $err . '"}';
@@ -296,8 +296,8 @@ function handleStatusRequest($local, $errno): void
         print '{"status":"starting"}';
     }
 
-    if ($local) {
-        fclose($local);
+    if ($backendSocket) {
+        fclose($backendSocket);
     }
 }
 
@@ -309,56 +309,56 @@ function rebuildMultipartBody(array $headers): string
     $type = $headers['Content-Type'] ?? $headers['content-type'] ?? '';
     $boundary = trim(explode('boundary=', $type)[1]);
 
-    $multiBody = '';
+    $multipartBody = '';
 
     foreach ($_REQUEST as $key => $value) {
         if ($key === 'req') {
             continue;
         }
-        $multiBody .= "--" . $boundary . "\r\n";
-        $multiBody .= "Content-Disposition: form-data; name=\"$key\"\r\n\r\n";
-        $multiBody .= "$value\r\n";
+        $multipartBody .= "--" . $boundary . "\r\n";
+        $multipartBody .= "Content-Disposition: form-data; name=\"$key\"\r\n\r\n";
+        $multipartBody .= "$value\r\n";
     }
 
     foreach ($_FILES as $file) {
-        $multiBody .= "--" . $boundary . "\r\n";
-        $multiBody .= "Content-Disposition: form-data; name=\"file\"; filename=\"" . $file['name'] . "\"\r\n";
-        $multiBody .= "Content-Type: " . $file['type'] . "\r\n\r\n";
+        $multipartBody .= "--" . $boundary . "\r\n";
+        $multipartBody .= "Content-Disposition: form-data; name=\"file\"; filename=\"" . $file['name'] . "\"\r\n";
+        $multipartBody .= "Content-Type: " . $file['type'] . "\r\n\r\n";
         if ($file['tmp_name'] === '') {
             exitWithError("File " . $file['name'] . " is larger than maximum upload file size");
         }
-        $multiBody .= file_get_contents($file['tmp_name']) . "\r\n";
+        $multipartBody .= file_get_contents($file['tmp_name']) . "\r\n";
     }
 
-    $multiBody .= "--" . $boundary . "--\r\n";
+    $multipartBody .= "--" . $boundary . "--\r\n";
 
-    debugLog("Reconstructed body: $multiBody");
-    return $multiBody;
+    debugLog("Reconstructed body: $multipartBody");
+    return $multipartBody;
 }
 
-function forwardRequestHeaders($local, array $headers, string $body, string $multiBody): void
+function forwardRequestHeaders($backendSocket, array $headers, string $body, string $multipartBody): void
 {
     foreach ($headers as $header => $value) {
         debugLog("$header: $value\n");
 
-        if ($multiBody !== '' && $header === 'Content-Length') {
+        if ($multipartBody !== '' && $header === 'Content-Length') {
             debugLog("Substitute Content-Length of " . $value . " with " . strlen($body));
             $value = strlen($body);
         }
 
-        fwrite($local, "$header: $value\r\n");
+        fwrite($backendSocket, "$header: $value\r\n");
     }
 }
 
-function streamCoolwsdResponse($local): void
+function streamCoolwsdResponse($backendSocket): void
 {
-    $rest = '';
+    $buffer = '';
     $contentLength = -1;
     $contentWritten = 0;
     $parsingHeaders = true;
 
     do {
-        $chunk = fread($local, 65536);
+        $chunk = fread($backendSocket, 65536);
         if ($chunk === false) {
             $error = error_get_last();
             $errorMessage = $error ? implode(' ', $error) : 'No error';
@@ -371,15 +371,15 @@ function streamCoolwsdResponse($local): void
                 exitWithError("No content in reply from coolwsd. Is SSL enabled in error ?");
             break;
         } elseif ($parsingHeaders) {
-            $rest .= $chunk;
-            debugLog("build headers to: $rest\n");
-            if (parseAndForwardHeaders($rest, $contentLength)) {
+            $buffer .= $chunk;
+            debugLog("build headers to: $buffer\n");
+            if (parseAndForwardHeaders($buffer, $contentLength)) {
                 $parsingHeaders = false;
 
                 $extOut = fopen("php://output", "w") or exitWithError("fundamental error opening PHP output");
-                fwrite($extOut, $rest);
-                $contentWritten += strlen($rest);
-                $rest = '';
+                fwrite($extOut, $buffer);
+                $contentWritten += strlen($buffer);
+                $buffer = '';
                 debugLog("passed last headers");
             }
         } else {
@@ -409,9 +409,9 @@ set_time_limit(0);
 // Where the AppImage is installed.
 $appImage = __DIR__ . '/collabora/Collabora_Online.AppImage';
 
-$tmp_dir = ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : sys_get_temp_dir();
-$lockfile = "$tmp_dir/coolwsd.lock";
-$pidfile = "$tmp_dir/coolwsd.pid";
+$tmpDir = ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : sys_get_temp_dir();
+$lockFile = "$tmpDir/coolwsd.lock";
+$pidFile = "$tmpDir/coolwsd.pid";
 
 // Avoid unwanted escaping of the req= parameter.
 $request = $_SERVER['QUERY_STRING'];
@@ -438,11 +438,11 @@ if (str_starts_with($request, '/hosting/capabilities') && !isCoolwsdRunning()) {
 }
 
 // If localhost:9983 does not accept connections within 3 seconds, treat the backend as unavailable.
-$local = @fsockopen("localhost", 9983, $errno, $errstr, 3);
+$backendSocket = @fsockopen("localhost", 9983, $errno, $errstr, 3);
 
 // Return the status response immediately if this is a ?status request.
 if ($statusOnly) {
-    handleStatusRequest($local, $errno);
+    handleStatusRequest($backendSocket, $errno);
     exit();
 }
 
@@ -450,7 +450,7 @@ if ($statusOnly) {
 $proxyURL = getRequestScheme();
 
 // Start coolwsd if necessary.
-if (!$local)
+if (!$backendSocket)
 {
     $err = checkCoolwsdSetup();
     if (!empty($err))
@@ -460,7 +460,7 @@ if (!$local)
 
     $logonce = true;
     while (true) {
-        $local = @fsockopen("localhost", 9983, $errno, $errstr, 15);
+        $backendSocket = @fsockopen("localhost", 9983, $errno, $errstr, 15);
         if ($errno === 111) {
             if($logonce) {
                debugLog("Can't yet connect to socket so sleep");
@@ -474,7 +474,7 @@ if (!$local)
     }
 }
 
-if (!$local) {
+if (!$backendSocket) {
     exitWithError("Timed out opening local socket: $errno - $errstr");
 }
 
@@ -491,26 +491,26 @@ $body = file_get_contents('php://input');
 debugLog("request content: '$body'");
 
 // PHP's RFC 1867 upload handling leaves php://input empty for multipart requests.
-$multiBody = '';
+$multipartBody = '';
 if ($body === '' && isMultipartRequest($headers)) {
     $body = rebuildMultipartBody($headers);
-    $multiBody = $body;
+    $multipartBody = $body;
 }
 
-fwrite($local, $realRequest . "\r\n");
+fwrite($backendSocket, $realRequest . "\r\n");
 
 // Forward request headers to the backend.
-forwardRequestHeaders($local, $headers, $body, $multiBody);
+forwardRequestHeaders($backendSocket, $headers, $body, $multipartBody);
 
-fwrite($local, "ProxyPrefix: " . $proxyURL . "\r\n");
-fwrite($local, "\r\n");
-fwrite($local, $body);
+fwrite($backendSocket, "ProxyPrefix: " . $proxyURL . "\r\n");
+fwrite($backendSocket, "\r\n");
+fwrite($backendSocket, $body);
 
 debugLog("waiting for response");
 
-streamCoolwsdResponse($local);
+streamCoolwsdResponse($backendSocket);
 
 debugLog("closing local socket");
-fclose($local);
+fclose($backendSocket);
 
 ?>
