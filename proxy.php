@@ -353,19 +353,28 @@ if ($statusOnly) {
     header('Content-type: application/json');
     header('Cache-Control: no-store');
 
-    if (!isCoolwsdRunning()) {
+    if (!isCoolwsdReachable()) {
         $err = checkCoolwsdSetup();
         if (!empty($err)) {
             print '{"status":"error","error":"' . $err . '"}';
             exit();
         }
 
-        startCoolwsd();
+        if (!isCoolwsdStartupInProgress())
+            startCoolwsd();
+
+        if (!waitForCoolwsdReady(COOLWSD_CONNECT_WAIT)) {
+            $elapsed = getCoolwsdStartingSince();
+            $elapsed = $elapsed ? max(0, time() - $elapsed) : 0;
+            http_response_code(202);
+            print '{"status":"starting","elapsed":' . $elapsed . '}';
+            exit();
+        }
     }
 
-    $response = file_get_contents(
+    $response = @file_get_contents(
         "http://localhost:9983/hosting/capabilities",
-        0,
+        false,
         stream_context_create(["http" => ["timeout" => 1]])
     );
 
@@ -379,11 +388,23 @@ if ($statusOnly) {
             stopCoolwsd();
             clearCoolwsdStarting();
             startCoolwsd();
-            print '{"status":"restarting"}';
-        } else
+
+            $elapsed = getCoolwsdStartingSince();
+            $elapsed = $elapsed ? max(0, time() - $elapsed) : 0;
+            http_response_code(202);
+            print '{"status":"restarting","elapsed":' . $elapsed . '}';
+        }
+        else {
+            clearCoolwsdStarting();
             print '{"status":"OK"}';
-    } else
-        print '{"status":"starting"}';
+        }
+    }
+    else {
+        $elapsed = getCoolwsdStartingSince();
+        $elapsed = $elapsed ? max(0, time() - $elapsed) : 0;
+        http_response_code(202);
+        print '{"status":"starting","elapsed":' . $elapsed . '}';
+    }
 
     exit();
 }
