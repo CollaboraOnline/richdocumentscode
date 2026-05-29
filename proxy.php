@@ -234,7 +234,7 @@ function stopCoolwsd()
     if ($pid && posix_kill($pid, 0))
     {
         debug_log("Stopping the coolwsd server with pid: $pid");
-        posix_kill($pid, 15 /*SIGTERM*/);
+        posix_kill($pid, 15);
     }
 }
 
@@ -331,7 +331,7 @@ debug_log("get URI " . $request);
 if ($request === '' && !$statusOnly)
     errorExit("Missing, required req= parameter");
 
-if (startsWith($request, '/hosting/capabilities') && !isCoolwsdRunning()) {
+if (startsWith($request, '/hosting/capabilities') && !isCoolwsdReachable()) {
     header('Content-type: application/json');
     header('Cache-Control: no-store');
 
@@ -409,6 +409,27 @@ if ($statusOnly) {
     exit();
 }
 
+// Start the appimage if necessary
+$local = @fsockopen("localhost", 9983, $errno, $errstr, 1);
+if (!$local)
+{
+    $err = checkCoolwsdSetup();
+    if (!empty($err))
+        errorExit($err);
+
+    if (!isCoolwsdStartupInProgress())
+        startCoolwsd();
+
+    if (!waitForCoolwsdReady(COOLWSD_CONNECT_WAIT))
+        errorExit("coolwsd is starting, please retry shortly");
+
+    $local = @fsockopen("localhost", 9983, $errno, $errstr, 3);
+}
+
+if (!$local) {
+    errorExit("Timed out opening local socket: $errno - $errstr");
+}
+
 // URL into this server of the proxy script.
 if ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
     || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https' )
@@ -419,22 +440,11 @@ if ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
     $proxyURL = "http://";
 }
 
-// Start the appimage if necessary
-$local = @fsockopen("localhost", 9983, $errno, $errstr, 15);
-while (!$local)
-{
-    $err = checkCoolwsdSetup();
-    if (!empty($err))
-        errorExit($err);
-
-    startCoolwsd();
-    $local = @fsockopen("localhost", 9983, $errno, $errstr, 15);
-}
+$headers = getallheaders();
 
 $proxyURL .= $_SERVER['HTTP_HOST'] . $_SERVER['SCRIPT_NAME'] . '?req=';
 debug_log("ProxyPrefix: '$proxyURL'");
 
-$headers = getallheaders();
 $realRequest = $_SERVER['REQUEST_METHOD'] . " " . $request . " " . $_SERVER['SERVER_PROTOCOL'];
 debug_log("Onward request is: '$realRequest'");
 
