@@ -49,6 +49,8 @@ $pidfile = "$tmp_dir/coolwsd.pid";
 $startingfile = "$tmp_dir/coolwsd.starting";
 
 const COOLWSD_STARTING_TTL = 180;
+const COOLWSD_CONNECT_WAIT = 3;
+const COOLWSD_RETRY_DELAY_US = 100000;
 
 function getCoolwsdPid()
 {
@@ -73,6 +75,17 @@ function isCoolwsdRunning()
         return 0;
 
     return posix_kill($pid, 0);
+}
+
+function isCoolwsdReachable()
+{
+    $local = @fsockopen("localhost", 9983, $errno, $errstr, 1);
+    if ($local) {
+        fclose($local);
+        return true;
+    }
+
+    return false;
 }
 
 function markCoolwsdStarting()
@@ -123,10 +136,26 @@ function isCoolwsdStartupStale()
 
 function clearStaleCoolwsdStartupState()
 {
-    if (isCoolwsdStartupStale() && !isCoolwsdRunning()) {
+    if (isCoolwsdStartupStale() && !isCoolwsdRunning() && !isCoolwsdReachable()) {
         debug_log("Clearing stale coolwsd startup marker");
         clearCoolwsdStarting();
     }
+}
+
+function waitForCoolwsdReady($timeoutSec)
+{
+    $deadline = microtime(true) + $timeoutSec;
+
+    while (microtime(true) < $deadline) {
+        if (isCoolwsdReachable()) {
+            clearCoolwsdStarting();
+            return true;
+        }
+
+        usleep(COOLWSD_RETRY_DELAY_US);
+    }
+
+    return false;
 }
 
 function startCoolwsd()
@@ -146,6 +175,8 @@ function startCoolwsd()
     // Check if IPv6 has been disabled
     $IPv4only = "";
     $launchCmd = "ip -6 addr";
+    $output = [];
+    $return = 0;
     debug_log("Testing disabled IPv6: $launchCmd");
     exec($launchCmd, $output, $return);
     if (implode("", $output) == "")
@@ -159,10 +190,11 @@ function startCoolwsd()
     // we have to set explicitly, because storage.wopi.alias_groups[@mode] is 'first' in case of richdocumentscode
     $lok_allow = "--o:net.lok_allow.host[14]=" . escapeshellarg($_SERVER['HTTP_HOST']);
 
-	// Extract the AppImage if FUSE is not available
-    $launchCmd = "bash -c \"( $appImage $remoteFontConfig $IPv4only $lok_allow --pidfile=$pidfile || " .
+    // Launch detached so startup survives the PHP request ending.
+	// Extracts the AppImage if FUSE is not available
+    $launchCmd = "bash -c '( $appImage $remoteFontConfig $IPv4only $lok_allow --pidfile=$pidfile || " .
                  "$appImage --appimage-extract-and-run $remoteFontConfig $IPv4only $lok_allow --pidfile=$pidfile" .
-                 " ) >/dev/null 2>&1 &\"";
+                 " ) >/dev/null 2>&1 < /dev/null &'";
 
     // Remove stale lock file (just in case)
     if (file_exists($lockfile))
@@ -170,36 +202,30 @@ function startCoolwsd()
             unlink($lockfile);
 
     // Prevent second start
-    $lock = fopen($lockfile, "x");
+    $lock = @fopen($lockfile, "x");
     if (!$lock)
     {
-        debug_log("Someone else starts coolwsd");
-        while (!isCoolwsdRunning())
-            sleep(1);
-
+        debug_log("coolwsd startup already in progress");
         return;
     }
 
-    // We start a new server, we don't need stale pidfile around
-    if (file_exists($pidfile))
-        unlink($pidfile);
+    try {
+        if (file_exists($pidfile))
+            unlink($pidfile);
 
-    markCoolwsdStarting();
+        markCoolwsdStarting();
 
-    debug_log("Launch the coolwsd server: $launchCmd");
-    exec($launchCmd, $output, $return);
-    if ($return)
-        debug_log("Failed to launch server at $appImage.");
-
-    while (!isCoolwsdRunning())
-        sleep(1);
-
-    // Startup complete enough to observe a running pid
-    clearCoolwsdStarting();
-
-    // Release the lock
-    fclose($lock);
-    unlink($lockfile);
+        debug_log("Launch the coolwsd server: $launchCmd");
+        $output = [];
+        $return = 0;
+        exec($launchCmd, $output, $return);
+        if ($return)
+            debug_log("Failed to launch server at $appImage.");
+    } finally {
+        fclose($lock);
+        if (file_exists($lockfile))
+            unlink($lockfile);
+    }
 }
 
 function stopCoolwsd()
@@ -237,10 +263,14 @@ function checkCoolwsdSetup()
     if (in_array('exec', $disabledFunctions) || @exec('echo EXEC') !== "EXEC")
         return 'exec_disabled';
 
+    $output = [];
+    $return = 0;
     exec("LD_TRACE_LOADED_OBJECTS=1 $appImage", $output, $return);
     if ($return)
         return 'no_glibc';
 
+    $output = [];
+    $return = 0;
     exec('( /sbin/ldconfig -p || scanelf -l ) | grep fontconfig > /dev/null 2>&1', $output, $return);
     if ($return)
         return 'no_fontconfig';
@@ -340,7 +370,6 @@ if ($statusOnly) {
     );
 
     if ($response) {
-        // Version check.
         $obj = json_decode($response);
         $expVer = '%COOLWSD_VERSION_HASH%';
         $actVer = substr($obj->{'productVersionHash'}, 0, strlen($expVer));
@@ -351,8 +380,7 @@ if ($statusOnly) {
             clearCoolwsdStarting();
             startCoolwsd();
             print '{"status":"restarting"}';
-        }
-        else
+        } else
             print '{"status":"OK"}';
     } else
         print '{"status":"starting"}';
@@ -398,7 +426,6 @@ function isMultipartRequest($headers)
     return strpos(strtolower($contentType), 'multipart/form-data') !== false;
 }
 
-// Oh dear - PHP's rfc1867 handling doesn't give any php://input to work with in this case.
 $multiBody = '';
 if ($body === '' && isMultipartRequest($headers)) {
     debug_log("Oh dear - PHP's rfc1867 handling doesn't give any php://input to work with");
@@ -430,7 +457,6 @@ if ($body === '' && isMultipartRequest($headers)) {
 }
 
 fwrite($local, $realRequest . "\r\n");
-// Send the headers on ...
 foreach ($headers as $header => $value) {
     debug_log("$header: $value\n");
     if ($multiBody !== '' && $header === 'Content-Length')
