@@ -1,3 +1,8 @@
+## 26.4.103 - 2026-06-03
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-26.04.1-3](https://github.com/CollaboraOnline/online.mirror/releases/tag/cp-26.04.1-3)
+- See also: [CODE 26.04 release notes](https://www.collaboraoffice.com/code-26-04-release-notes/)
+
 ## 25.4.904 - 2026-03-22
 ### AppImage version:
 - Collabora Online Development Edition (CODE) tag [cp-25.04.9-4](https://github.com/CollaboraOnline/online/releases/tag/cp-25.04.9-4)
