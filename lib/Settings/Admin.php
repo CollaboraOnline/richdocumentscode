@@ -17,11 +17,19 @@
 
 namespace OCA\RichDocumentsCODE\Settings;
 
+use OCP\App\IAppManager;
 use OCP\AppFramework\Http\TemplateResponse;
+use OCP\IURLGenerator;
 use OCP\Settings\ISettings;
 
 class Admin implements ISettings
 {
+	public function __construct(
+		private readonly IAppManager $appManager,
+		private readonly IURLGenerator $urlGenerator,
+	) {
+	}
+
     /**
      * @return TemplateResponse
      */
@@ -33,16 +41,15 @@ class Admin implements ISettings
         $absoluteUrlAppInstall = '/';
         $appArch = 'x86_64';
 
-        $urlGenerator = \OC::$server->getURLGenerator();
-        $absoluteUrl = $urlGenerator->getAbsoluteURL('/index.php/settings/apps/app-bundles/richdocuments');
-        $absoluteUrlAdmin = $urlGenerator->getAbsoluteURL('/index.php/settings/admin/richdocuments');
-        $absoluteUrlAppInstall = $urlGenerator->getAbsoluteURL('/index.php/settings/apps/app-bundles/richdocumentscode');
+        $absoluteUrl = $this->urlGenerator->getAbsoluteURL('/index.php/settings/apps/app-bundles/richdocuments');
+        $absoluteUrlAdmin = $this->urlGenerator->getAbsoluteURL('/index.php/settings/admin/richdocuments');
+        $absoluteUrlAppInstall = $this->urlGenerator->getAbsoluteURL('/index.php/settings/apps/app-bundles/richdocumentscode');
 
         if ($this->getSection() === 'richdocumentscode_arm64') {
             $appArch = 'aarch64';
         }
 
-        if (\OC::$server->getAppManager()->isEnabledForUser('richdocuments')) {
+        if ($this->appManager->isEnabledForUser('richdocuments')) {
             $isEnabled = 'yes';
         }
 
