@@ -35,7 +35,7 @@ function errorExit($msg)
     exit();
 }
 
-debug_log('Proxy v1');
+debug_log('Proxy');
 
 // Let the webserver time us out in its own good time.
 set_time_limit(0);
@@ -46,6 +46,11 @@ $appImage = __DIR__ . '/collabora/Collabora_Online.AppImage';
 $tmp_dir = ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : sys_get_temp_dir();
 $lockfile = "$tmp_dir/coolwsd.lock";
 $pidfile = "$tmp_dir/coolwsd.pid";
+$startingfile = "$tmp_dir/coolwsd.starting";
+
+const COOLWSD_STARTING_TTL = 180;
+const COOLWSD_CONNECT_WAIT = 3;
+const COOLWSD_RETRY_DELAY_US = 100000;
 
 function getCoolwsdPid()
 {
@@ -69,7 +74,88 @@ function isCoolwsdRunning()
     if ($pid === 0)
         return 0;
 
-    return posix_kill($pid,0);
+    return posix_kill($pid, 0);
+}
+
+function isCoolwsdReachable()
+{
+    $local = @fsockopen("localhost", 9983, $errno, $errstr, 1);
+    if ($local) {
+        fclose($local);
+        return true;
+    }
+
+    return false;
+}
+
+function markCoolwsdStarting()
+{
+    global $startingfile;
+    file_put_contents($startingfile, (string)time());
+}
+
+function clearCoolwsdStarting()
+{
+    global $startingfile;
+    if (file_exists($startingfile))
+        unlink($startingfile);
+}
+
+function getCoolwsdStartingSince()
+{
+    global $startingfile;
+
+    clearstatcache();
+    if (!file_exists($startingfile))
+        return 0;
+
+    $ts = (int)trim(@file_get_contents($startingfile));
+    if ($ts <= 0)
+        $ts = (int)@filemtime($startingfile);
+
+    return $ts ?: 0;
+}
+
+function isCoolwsdStartupInProgress()
+{
+    $since = getCoolwsdStartingSince();
+    if ($since === 0)
+        return false;
+
+    return (time() - $since) < COOLWSD_STARTING_TTL;
+}
+
+function isCoolwsdStartupStale()
+{
+    $since = getCoolwsdStartingSince();
+    if ($since === 0)
+        return false;
+
+    return (time() - $since) >= COOLWSD_STARTING_TTL;
+}
+
+function clearStaleCoolwsdStartupState()
+{
+    if (isCoolwsdStartupStale() && !isCoolwsdRunning() && !isCoolwsdReachable()) {
+        debug_log("Clearing stale coolwsd startup marker");
+        clearCoolwsdStarting();
+    }
+}
+
+function waitForCoolwsdReady($timeoutSec)
+{
+    $deadline = microtime(true) + $timeoutSec;
+
+    while (microtime(true) < $deadline) {
+        if (isCoolwsdReachable()) {
+            clearCoolwsdStarting();
+            return true;
+        }
+
+        usleep(COOLWSD_RETRY_DELAY_US);
+    }
+
+    return false;
 }
 
 function startCoolwsd()
@@ -89,56 +175,66 @@ function startCoolwsd()
     // Check if IPv6 has been disabled
     $IPv4only = "";
     $launchCmd = "ip -6 addr";
+    $output = [];
+    $return = 0;
     debug_log("Testing disabled IPv6: $launchCmd");
     exec($launchCmd, $output, $return);
-    if (implode("",$output)=="")
+    if (implode("", $output) == "")
     {
         debug_log("IPv6 disabled. Will launch coolwsd with IPv4-only option.");
         $IPv4only = "--o:net.proto=IPv4";
     }
 
-    // Extract the AppImage if FUSE is not available
     // net.lok_allow.host[14] is the next empty slot after the last element of the default list
     // when lok_allow does not contain the Nextcloud host, it is not possible to insert image from Nextcloud
     // we have to set explicitly, because storage.wopi.alias_groups[@mode] is 'first' in case of richdocumentscode
     $lok_allow = "--o:net.lok_allow.host[14]=" . escapeshellarg($_SERVER['HTTP_HOST']);
-    $launchCmd = "bash -c \"( $appImage $remoteFontConfig $IPv4only $lok_allow --pidfile=$pidfile || $appImage --appimage-extract-and-run $remoteFontConfig $IPv4only $lok_allow --pidfile=$pidfile) >/dev/null & disown\"";
+
+    // Launch detached so startup survives the PHP request ending.
+	// Extracts the AppImage if FUSE is not available
+    $launchCmd = "bash -c '( $appImage $remoteFontConfig $IPv4only $lok_allow --pidfile=$pidfile || " .
+                 "$appImage --appimage-extract-and-run $remoteFontConfig $IPv4only $lok_allow --pidfile=$pidfile" .
+                 " ) >/dev/null 2>&1 < /dev/null &'";
 
     // Remove stale lock file (just in case)
-    if (file_exists("$lockfile"))
-        if (time() - filectime("$lockfile") > 60 * 5)
-            unlink("$lockfile");
+    if (file_exists($lockfile))
+        if (time() - filectime($lockfile) > 60 * 5)
+            unlink($lockfile);
 
     // Prevent second start
-    $lock = @fopen("$lockfile", "x");
-    if ($lock)
+    $lock = @fopen($lockfile, "x");
+    if (!$lock)
     {
-        // We start a new server, we don't need stale pidfile around
-        if (file_exists("$pidfile"))
-            unlink("$pidfile");
+        debug_log("coolwsd startup already in progress");
+        return;
+    }
+
+    try {
+        if (file_exists($pidfile))
+            unlink($pidfile);
+
+        markCoolwsdStarting();
 
         debug_log("Launch the coolwsd server: $launchCmd");
+        $output = [];
+        $return = 0;
         exec($launchCmd, $output, $return);
         if ($return)
             debug_log("Failed to launch server at $appImage.");
-
+    } finally {
         fclose($lock);
+        if (file_exists($lockfile))
+            unlink($lockfile);
     }
-
-    while (!isCoolwsdRunning())
-        sleep(1);
-
-    if (file_exists("$lockfile"))
-        unlink("$lockfile");
 }
 
 function stopCoolwsd()
 {
     $pid = getCoolwsdPid();
-    if (posix_kill($pid,0))
+    if ($pid && posix_kill($pid, 0))
     {
         debug_log("Stopping the coolwsd server with pid: $pid");
-        posix_kill($pid, 15 /*SIGTERM*/);
+        posix_kill($pid, 15);
     }
 }
 
@@ -167,10 +263,14 @@ function checkCoolwsdSetup()
     if (in_array('exec', $disabledFunctions) || @exec('echo EXEC') !== "EXEC")
         return 'exec_disabled';
 
+    $output = [];
+    $return = 0;
     exec("LD_TRACE_LOADED_OBJECTS=1 $appImage", $output, $return);
     if ($return)
         return 'no_glibc';
 
+    $output = [];
+    $return = 0;
     exec('( /sbin/ldconfig -p || scanelf -l ) | grep fontconfig > /dev/null 2>&1', $output, $return);
     if ($return)
         return 'no_fontconfig';
@@ -231,7 +331,7 @@ debug_log("get URI " . $request);
 if ($request === '' && !$statusOnly)
     errorExit("Missing, required req= parameter");
 
-if (startsWith($request, '/hosting/capabilities') && !isCoolwsdRunning()) {
+if (startsWith($request, '/hosting/capabilities') && !isCoolwsdReachable()) {
     header('Content-type: application/json');
     header('Cache-Control: no-store');
 
@@ -246,95 +346,100 @@ if (startsWith($request, '/hosting/capabilities') && !isCoolwsdRunning()) {
     exit();
 }
 
-// If we can't get a socket open in 3 seconds when that is backed by
-// a dedicated thread, then we have a server missing in action.
-$local = @fsockopen("localhost", 9983, $errno, $errstr, 3);
+clearStaleCoolwsdStartupState();
 
 // Return the status and exit if it is a ?status request
 if ($statusOnly) {
     header('Content-type: application/json');
     header('Cache-Control: no-store');
-    if (!$local) {
+
+    if (!isCoolwsdReachable()) {
         $err = checkCoolwsdSetup();
-        if (!empty($err))
+        if (!empty($err)) {
             print '{"status":"error","error":"' . $err . '"}';
-        else if (!isCoolwsdRunning()) {
+            exit();
+        }
+
+        if (!isCoolwsdStartupInProgress())
             startCoolwsd();
-            print '{"status":"starting"}';
-        }
-    } else if ($errno === 111) {
-        print '{"status":"starting"}';
-    } else {
-        $response = file_get_contents("http://localhost:9983/hosting/capabilities", 0, stream_context_create(["http"=>["timeout"=>1]]));
-        if ($response) {
-            // Version check.
-            $obj = json_decode($response);
-            $expVer = '%COOLWSD_VERSION_HASH%';
-            $actVer = substr($obj->{'productVersionHash'}, 0, strlen($expVer));
-            if ($actVer !== $expVer && $expVer !== '%' . 'COOLWSD_VERSION_HASH' . '%') { // deliberately split so that sed does not touch this during build-time
-                // Old/unexpected server version; restart.
-                error_log("Old server found, restarting. Expected hash $expVer but found $actVer.");
-                stopCoolwsd();
-                // wait 10 seconds max
-                for ($i = 0; isCoolwsdRunning() && ($i < 10); $i++)
-                    sleep(1);
 
-                // somebody else might have restarted it in the meantime
-                if (!isCoolwsdRunning())
-                    startCoolwsd();
-
-                print '{"status":"restarting"}';
-            }
-            else
-                print '{"status":"OK"}';
+        if (!waitForCoolwsdReady(COOLWSD_CONNECT_WAIT)) {
+            $elapsed = getCoolwsdStartingSince();
+            $elapsed = $elapsed ? max(0, time() - $elapsed) : 0;
+            http_response_code(202);
+            print '{"status":"starting","elapsed":' . $elapsed . '}';
+            exit();
         }
-        else
-            print '{"status":"starting"}';
-        fclose($local);
+    }
+
+    $response = @file_get_contents(
+        "http://localhost:9983/hosting/capabilities",
+        false,
+        stream_context_create(["http" => ["timeout" => 1]])
+    );
+
+    if ($response) {
+        $obj = json_decode($response);
+        $expVer = '%COOLWSD_VERSION_HASH%';
+        $actVer = substr($obj->{'productVersionHash'}, 0, strlen($expVer));
+        if ($actVer !== $expVer && $expVer !== '%' . 'COOLWSD_VERSION_HASH' . '%') { // deliberately split so that sed does not touch this during build-time
+            // Old server found, restart.
+            error_log("Old server found, restarting. Expected hash $expVer but found $actVer.");
+            stopCoolwsd();
+            clearCoolwsdStarting();
+            startCoolwsd();
+
+            $elapsed = getCoolwsdStartingSince();
+            $elapsed = $elapsed ? max(0, time() - $elapsed) : 0;
+            http_response_code(202);
+            print '{"status":"restarting","elapsed":' . $elapsed . '}';
+        }
+        else {
+            clearCoolwsdStarting();
+            print '{"status":"OK"}';
+        }
+    }
+    else {
+        $elapsed = getCoolwsdStartingSince();
+        $elapsed = $elapsed ? max(0, time() - $elapsed) : 0;
+        http_response_code(202);
+        print '{"status":"starting","elapsed":' . $elapsed . '}';
     }
 
     exit();
 }
-// URL into this server of the proxy script.
-if ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-	|| (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https' )
-	|| (isset($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on')
-) {
-    $proxyURL = "https://";
-} else {
-    $proxyURL = "http://";
-}
 
 // Start the appimage if necessary
+$local = @fsockopen("localhost", 9983, $errno, $errstr, 1);
 if (!$local)
 {
     $err = checkCoolwsdSetup();
     if (!empty($err))
         errorExit($err);
-    else if (!isCoolwsdRunning())
+
+    if (!isCoolwsdStartupInProgress())
         startCoolwsd();
 
-    $logonce = true;
-    while (true) {
-        $local = @fsockopen("localhost", 9983, $errno, $errstr, 15);
-        if ($errno === 111) {
-            if($logonce) {
-               debug_log("Can't yet connect to socket so sleep");
-               $logonce = false;
-            }
-            usleep(50 * 1000); // 50ms.
-        } else {
-            debug_log("connected?");
-            break;
-        }
-    }
+    if (!waitForCoolwsdReady(COOLWSD_CONNECT_WAIT))
+        errorExit("coolwsd is starting, please retry shortly");
+
+    $local = @fsockopen("localhost", 9983, $errno, $errstr, 3);
 }
 
 if (!$local) {
     errorExit("Timed out opening local socket: $errno - $errstr");
 }
 
-// Fetch our headers for later
+// URL into this server of the proxy script.
+if ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+    || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https' )
+    || (isset($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on')
+) {
+    $proxyURL = "https://";
+} else {
+    $proxyURL = "http://";
+}
+
 $headers = getallheaders();
 
 $proxyURL .= $_SERVER['HTTP_HOST'] . $_SERVER['SCRIPT_NAME'] . '?req=';
@@ -352,15 +457,14 @@ function isMultipartRequest($headers)
     return strpos(strtolower($contentType), 'multipart/form-data') !== false;
 }
 
-// Oh dear - PHP's rfc1867 handling doesn't give any php://input to work with in this case.
 $multiBody = '';
 if ($body === '' && isMultipartRequest($headers)) {
     debug_log("Oh dear - PHP's rfc1867 handling doesn't give any php://input to work with");
-	debug_log("Reconstructing multipart body - Files: " . count($_FILES) . ", Form fields: " . count($_POST));
+    debug_log("Reconstructing body - Files: " . count($_FILES) . ", Form fields: " . count($_POST));
 
     $type = isset($headers['Content-Type']) ? $headers['Content-Type'] : $headers['content-type'];
     $boundary = trim(explode('boundary=', $type)[1]);
-    foreach ($_REQUEST as $key=>$value) {
+    foreach ($_REQUEST as $key => $value) {
         if ($key === 'req') {
             continue;
         }
@@ -384,7 +488,6 @@ if ($body === '' && isMultipartRequest($headers)) {
 }
 
 fwrite($local, $realRequest . "\r\n");
-// Send the headers on ...
 foreach ($headers as $header => $value) {
     debug_log("$header: $value\n");
     if ($multiBody !== '' && $header === 'Content-Length')
@@ -405,15 +508,16 @@ $rest = '';
 $contentLength = -1;
 $contentWritten = 0;
 $parsingHeaders = true;
+$extOut = null;
 do {
     $chunk = fread($local, 65536);
-    if($chunk === false) {
+    if ($chunk === false) {
         $error = error_get_last();
         $errorMessage = $error ? implode(' ', $error) : 'No error';
         echo "ERROR ! $errorMessage\n";
         debug_log("error on chunk: $errorMessage");
         break;
-    } elseif($chunk === '') {
+    } elseif ($chunk === '') {
         debug_log("empty chunk last data");
         if ($parsingHeaders)
             errorExit("No content in reply from coolwsd. Is SSL enabled in error ?");
@@ -442,7 +546,7 @@ do {
         break;
     }
 
-} while(true);
+} while (true);
 
 debug_log("closing local socket");
 fclose($local);
