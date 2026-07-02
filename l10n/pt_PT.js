@@ -5,6 +5,7 @@ OC.L10N.register(
     "Your system is ARM64, but you have installed the x86_64 version of the app. Please remove this and" : "Seu sistema é ARM64, mas você instalou a versão x86_64 do aplicativo. Exclua-a e",
     "You have the Collabora Online app enabled. For further information and configuration, please check:" : "Você tem o aplicativo Collabora Online ativado. Para mais informações e configurações, verifique:",
     "Administration settings > Nextcloud Office" : "Configurações de administração > Nextcloud Office",
-    "The Built-in CODE Server is designed to work with the Nextcloud Office app." : "O servidor CODE integrado foi projetado para funcionar com o aplicativo Nextcloud Office."
+    "The Built-in CODE Server is designed to work with the Nextcloud Office app." : "O servidor CODE integrado foi projetado para funcionar com o aplicativo Nextcloud Office.",
+    "Install it from the Nextcloud App Store." : "Instale-o pela Loja de Aplicativos Nextcloud."
 },
 "nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");
