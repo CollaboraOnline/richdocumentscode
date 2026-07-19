@@ -24,9 +24,9 @@ function debug_log($msg)
     // error_log("richdocumentscode (proxy.php) debug, PID: " . getmypid() . ", Message: $msg");
 }
 
-function errorExit($msg)
+function errorExit($msg, $code = 400)
 {
-    http_response_code(400);
+    http_response_code($code);
     print "<html><body>\n";
     print "<h1>Socket proxy error</h1>\n";
     print "<p>Error: " . htmlspecialchars($msg) . "</p>\n";
@@ -310,7 +310,7 @@ if (!$local)
 {
     $err = checkCoolwsdSetup();
     if (!empty($err))
-        errorExit($err);
+        errorExit($err, 500);
     else if (!isCoolwsdRunning())
         startCoolwsd();
 
@@ -331,7 +331,7 @@ if (!$local)
 }
 
 if (!$local) {
-    errorExit("Timed out opening local socket: $errno - $errstr");
+    errorExit("Timed out opening local socket: $errno - $errstr", 500);
 }
 
 // Fetch our headers for later
@@ -373,7 +373,7 @@ if ($body === '' && isMultipartRequest($headers)) {
         $multiBody .= "Content-Disposition: form-data; name=\"file\"; filename=\"" . $file['name'] . "\"\r\n";
         $multiBody .= "Content-Type: " . $file['type'] . "\r\n\r\n";
         if ($file['tmp_name'] === '') {
-            errorExit("File " . $file['name'] . " is larger than maximum up-load file-size");
+            errorExit("File " . $file['name'] . " is larger than maximum up-load file-size", 413);
         }
         $multiBody .= file_get_contents($file['tmp_name']) . "\r\n";
     }
@@ -416,7 +416,7 @@ do {
     } elseif($chunk === '') {
         debug_log("empty chunk last data");
         if ($parsingHeaders)
-            errorExit("No content in reply from coolwsd. Is SSL enabled in error ?");
+            errorExit("No content in reply from coolwsd. Is SSL enabled in error ?", 500);
         break;
     } elseif ($parsingHeaders) {
         $rest .= $chunk;
@@ -424,7 +424,7 @@ do {
         if (parseLastHeader($rest, $contentLength)) {
             $parsingHeaders = false;
 
-            $extOut = fopen("php://output", "w") or errorExit("fundamental error opening PHP output");
+            $extOut = fopen("php://output", "w") or errorExit("fundamental error opening PHP output", 500);
             fwrite($extOut, $rest);
             $contentWritten += strlen($rest);
             $rest = '';
