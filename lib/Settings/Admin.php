@@ -17,7 +17,9 @@
 
 namespace OCA\RichDocumentsCODE\Settings;
 
+use OCP\App\IAppManager;
 use OCP\AppFramework\Http\TemplateResponse;
+use OCP\IURLGenerator;
 use OCP\Settings\ISettings;
 
 class Admin implements ISettings
@@ -33,7 +35,7 @@ class Admin implements ISettings
         $absoluteUrlAppInstall = '/';
         $appArch = 'x86_64';
 
-        $urlGenerator = \OC::$server->getURLGenerator();
+        $urlGenerator = \OC::$server->get(IURLGenerator::class);
         $absoluteUrl = $urlGenerator->getAbsoluteURL('/index.php/settings/apps/app-bundles/richdocuments');
         $absoluteUrlAdmin = $urlGenerator->getAbsoluteURL('/index.php/settings/admin/richdocuments');
         $absoluteUrlAppInstall = $urlGenerator->getAbsoluteURL('/index.php/settings/apps/app-bundles/richdocumentscode');
@@ -42,7 +44,7 @@ class Admin implements ISettings
             $appArch = 'aarch64';
         }
 
-        if (\OC::$server->getAppManager()->isEnabledForUser('richdocuments')) {
+        if (\OC::$server->get(IAppManager::class)->isEnabledForUser('richdocuments')) {
             $isEnabled = 'yes';
         }
 
