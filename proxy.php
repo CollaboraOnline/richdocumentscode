@@ -102,7 +102,9 @@ function startCoolwsd()
     // when lok_allow does not contain the Nextcloud host, it is not possible to insert image from Nextcloud
     // we have to set explicitly, because storage.wopi.alias_groups[@mode] is 'first' in case of richdocumentscode
     $lok_allow = "--o:net.lok_allow.host[14]=" . escapeshellarg($_SERVER['HTTP_HOST']);
-    $launchCmd = "bash -c \"( $appImage $remoteFontConfig $IPv4only $lok_allow --pidfile=$pidfile || $appImage --appimage-extract-and-run $remoteFontConfig $IPv4only $lok_allow --pidfile=$pidfile) >/dev/null & disown\"";
+
+    $innerCmd = "( $appImage $remoteFontConfig $IPv4only $lok_allow --pidfile=$pidfile || $appImage --appimage-extract-and-run $remoteFontConfig $IPv4only $lok_allow --pidfile=$pidfile) >/dev/null & disown";
+    $launchCmd = "bash -c " . escapeshellarg($innerCmd);
 
     // Remove stale lock file (just in case)
     if (file_exists("$lockfile"))
