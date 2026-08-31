@@ -1,3 +1,13 @@
+## 26.4.302 - 2026-08-31
+### Fix:
+- #345 Get URL generator and app manager from settings object (fixes admin settings on Nextcloud 34)
+- Return 5xx status codes for server-side errors in proxy.php
+### Compatibility:
+- Require Nextcloud 30 or later
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-26.04.3-2](https://github.com/CollaboraOnline/online.mirror/releases/tag/cp-26.04.3-2)
+- See also: [CODE 26.04 release notes](https://www.collaboraoffice.com/code-26-04-release-notes/)
+
 ## 26.4.104 - 2026-06-07
 ### AppImage version:
 - Collabora Online Development Edition (CODE) tag [cp-26.04.1-4](https://github.com/CollaboraOnline/online.mirror/releases/tag/cp-26.04.1-4)
