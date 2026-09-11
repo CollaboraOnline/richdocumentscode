@@ -1,3 +1,8 @@
+## 26.4.303 - 2026-09-11
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-26.04.3-3](https://github.com/CollaboraOnline/online.mirror/releases/tag/cp-26.04.3-3)
+- See also: [CODE 26.04 release notes](https://www.collaboraoffice.com/code-26-04-release-notes/)
+
 ## 26.4.302 - 2026-08-31
 ### Fix:
 - #345 Get URL generator and app manager from settings object (fixes admin settings on Nextcloud 34)
