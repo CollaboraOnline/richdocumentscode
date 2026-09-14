@@ -82,7 +82,8 @@ function startCoolwsd()
     $remoteFontConfig = "";
     if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
     {
-        $remoteFontConfigUrl = escapeshellarg("https://" . $_SERVER['HTTP_HOST'] . preg_replace("/richdocumentscode.*$/", "richdocuments/settings/fonts.json", $_SERVER['REQUEST_URI']));
+        // SCRIPT_NAME is the path the web server resolved to this script, so it gives the app's own location.
+        $remoteFontConfigUrl = escapeshellarg("https://" . $_SERVER['HTTP_HOST'] . preg_replace("/richdocumentscode.*$/", "richdocuments/settings/fonts.json", $_SERVER['SCRIPT_NAME']));
         $remoteFontConfig = "--o:remote_font_config.url=" . $remoteFontConfigUrl;
     }
 
