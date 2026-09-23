@@ -104,36 +104,39 @@ function startCoolwsd()
 
     $host = requestHost();
 
+    // Options for coolwsd, one argument each
+    $options = [];
+
     // Remote font config URL (HTTPS only)
-    $remoteFontConfig = "";
     if ($host !== "" && isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
     {
         // SCRIPT_NAME is the path the web server resolved to this script, so it gives the app's own location.
-        $remoteFontConfigUrl = escapeshellarg("https://" . $host . preg_replace("/richdocumentscode.*$/", "richdocuments/settings/fonts.json", $_SERVER['SCRIPT_NAME']));
-        $remoteFontConfig = "--o:remote_font_config.url=" . $remoteFontConfigUrl;
+        $remoteFontConfigUrl = "https://" . $host . preg_replace("/richdocumentscode.*$/", "richdocuments/settings/fonts.json", $_SERVER['SCRIPT_NAME']);
+        $options[] = "--o:remote_font_config.url=" . $remoteFontConfigUrl;
     }
 
     // Check if IPv6 has been disabled
-    $IPv4only = "";
-    $launchCmd = "ip -6 addr";
-    debug_log("Testing disabled IPv6: $launchCmd");
-    exec($launchCmd, $output, $return);
+    debug_log("Testing disabled IPv6: ip -6 addr");
+    exec("ip -6 addr", $output, $return);
     if (implode("",$output)=="")
     {
         debug_log("IPv6 disabled. Will launch coolwsd with IPv4-only option.");
-        $IPv4only = "--o:net.proto=IPv4";
+        $options[] = "--o:net.proto=IPv4";
     }
 
-    // Extract the AppImage if FUSE is not available
     // net.lok_allow.host[14] is the next empty slot after the last element of the default list
     // when lok_allow does not contain the Nextcloud host, it is not possible to insert image from Nextcloud
     // we have to set explicitly, because storage.wopi.alias_groups[@mode] is 'first' in case of richdocumentscode
-    $lok_allow = "";
     if ($host !== "")
-        $lok_allow = "--o:net.lok_allow.host[14]=" . escapeshellarg($host);
+        $options[] = "--o:net.lok_allow.host[14]=" . $host;
 
-    $innerCmd = "( $appImage $remoteFontConfig $IPv4only $lok_allow --pidfile=$pidfile || $appImage --appimage-extract-and-run $remoteFontConfig $IPv4only $lok_allow --pidfile=$pidfile) >/dev/null & disown";
-    $launchCmd = "bash -c " . escapeshellarg($innerCmd);
+    $options[] = "--pidfile=" . $pidfile;
+
+    // bash runs this fixed script with the AppImage as $0 and the options as "$@", so it never
+    // parses the values themselves. A second attempt with --appimage-extract-and-run follows when
+    // the AppImage fails, as it does without FUSE.
+    $script = '( "$0" "$@" || "$0" --appimage-extract-and-run "$@" ) >/dev/null & disown';
+    $launchCmd = array_merge(['bash', '-c', $script, $appImage], $options);
 
     // Remove stale lock file (just in case)
     if (file_exists("$lockfile"))
@@ -148,9 +151,10 @@ function startCoolwsd()
         if (file_exists("$pidfile"))
             unlink("$pidfile");
 
-        debug_log("Launch the coolwsd server: $launchCmd");
-        exec($launchCmd, $output, $return);
-        if ($return)
+        debug_log("Launch the coolwsd server: " . implode(' ', $launchCmd));
+        $devNull = [0 => ['file', '/dev/null', 'r'], 1 => ['file', '/dev/null', 'w']];
+        $process = proc_open($launchCmd, $devNull, $pipes);
+        if ($process === false || proc_close($process) !== 0)
             debug_log("Failed to launch server at $appImage.");
 
         fclose($lock);
@@ -194,8 +198,8 @@ function checkCoolwsdSetup()
     if (!is_executable($appImage))
         return 'appimage_not_executable';
 
-    $disabledFunctions = explode(',', ini_get('disable_functions'));
-    if (in_array('exec', $disabledFunctions) || @exec('echo EXEC') !== "EXEC")
+    $disabledFunctions = array_map('trim', explode(',', ini_get('disable_functions')));
+    if (in_array('exec', $disabledFunctions) || in_array('proc_open', $disabledFunctions) || @exec('echo EXEC') !== "EXEC")
         return 'exec_disabled';
 
     exec("LD_TRACE_LOADED_OBJECTS=1 $appImage", $output, $return);
