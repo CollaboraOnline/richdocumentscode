@@ -460,12 +460,17 @@ do {
             $parsingHeaders = false;
 
             $extOut = fopen("php://output", "w") or errorExit("fundamental error opening PHP output", 500);
+            // A read may also contain bytes from the next HTTP response.
+            if ($contentLength >= 0)
+                $rest = substr($rest, 0, $contentLength);
             fwrite($extOut, $rest);
             $contentWritten += strlen($rest);
             $rest = '';
             debug_log("passed last headers");
         }
     } else {
+        if ($contentLength >= 0)
+            $chunk = substr($chunk, 0, max(0, $contentLength - $contentWritten));
         fwrite($extOut, $chunk);
         $contentWritten += strlen($chunk);
         debug_log("proxy : " . strlen($chunk) . " bytes");
