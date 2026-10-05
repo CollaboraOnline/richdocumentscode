@@ -395,10 +395,8 @@ if ($body === '' && isMultipartRequest($headers)) {
 
     $type = isset($headers['Content-Type']) ? $headers['Content-Type'] : $headers['content-type'];
     $boundary = trim(explode('boundary=', $type)[1]);
-    foreach ($_REQUEST as $key=>$value) {
-        if ($key === 'req') {
-            continue;
-        }
+    // Only the posted fields: $_REQUEST would add the query string parameters too.
+    foreach ($_POST as $key=>$value) {
         $multiBody .= "--" . $boundary . "\r\n";
         $multiBody .= "Content-Disposition: form-data; name=\"$key\"\r\n\r\n";
         $multiBody .= "$value\r\n";
@@ -422,7 +420,8 @@ fwrite($local, $realRequest . "\r\n");
 // Send the headers on ...
 foreach ($headers as $header => $value) {
     debug_log("$header: $value\n");
-    if ($multiBody !== '' && $header === 'Content-Length')
+    // Header names are case-insensitive, and arrive in lower case over HTTP/2.
+    if ($multiBody !== '' && strcasecmp($header, 'Content-Length') === 0)
     {
         debug_log("Substitute Content-Length of " . $value . " with " . strlen($body));
         $value = strlen($body);
