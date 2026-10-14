@@ -38,6 +38,12 @@ class HostFile
         return self::directory() . '/coolwsd-hosts.json';
     }
 
+    // The path of the copy of the settings coolwsd was last started with
+    public static function startedPath(): string
+    {
+        return self::directory() . '/coolwsd-hosts-started.json';
+    }
+
     // A directory or file in the temporary directory is used only when this user owns it and it is
     // not a symbolic link, because other users can create names there first
     private static function isOwnedPlain(string $path, bool $directory): bool

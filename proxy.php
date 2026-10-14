@@ -132,6 +132,8 @@ function startCoolwsd()
         if (file_exists("$pidfile"))
             unlink("$pidfile");
 
+        \OCA\RichDocumentsCODE\HostFile::writeText(\OCA\RichDocumentsCODE\HostFile::startedPath(), $settingsText);
+
         debug_log("Launch the coolwsd server: " . implode(' ', $launchCmd));
         $devNull = [0 => ['file', '/dev/null', 'r'], 1 => ['file', '/dev/null', 'w']];
         $process = proc_open($launchCmd, $devNull, $pipes);
@@ -148,6 +150,27 @@ function startCoolwsd()
         unlink("$lockfile");
 
     return true;
+}
+
+// Whether Nextcloud's host settings differ from those coolwsd was started with
+function hostSettingsChanged()
+{
+    $current = \OCA\RichDocumentsCODE\HostFile::readText(\OCA\RichDocumentsCODE\HostFile::path());
+    $started = \OCA\RichDocumentsCODE\HostFile::readText(\OCA\RichDocumentsCODE\HostFile::startedPath());
+    return $current !== $started;
+}
+
+// Stops coolwsd, and starts it again unless another request already has
+function restartCoolwsd()
+{
+    stopCoolwsd();
+    // wait 10 seconds max
+    for ($i = 0; isCoolwsdRunning() && ($i < 10); $i++)
+        sleep(1);
+
+    // somebody else might have restarted it in the meantime
+    if (!isCoolwsdRunning())
+        startCoolwsd();
 }
 
 function stopCoolwsd()
@@ -295,17 +318,14 @@ if ($statusOnly) {
             $obj = json_decode($response);
             $expVer = '%COOLWSD_VERSION_HASH%';
             $actVer = substr($obj->{'productVersionHash'}, 0, strlen($expVer));
-            if ($actVer !== $expVer && $expVer !== '%' . 'COOLWSD_VERSION_HASH' . '%') { // deliberately split so that sed does not touch this during build-time
-                // Old/unexpected server version; restart.
-                error_log("Old server found, restarting. Expected hash $expVer but found $actVer.");
-                stopCoolwsd();
-                // wait 10 seconds max
-                for ($i = 0; isCoolwsdRunning() && ($i < 10); $i++)
-                    sleep(1);
-
-                // somebody else might have restarted it in the meantime
-                if (!isCoolwsdRunning())
-                    startCoolwsd();
+            $oldVersion = $actVer !== $expVer && $expVer !== '%' . 'COOLWSD_VERSION_HASH' . '%'; // deliberately split so that sed does not touch this during build-time
+            if ($oldVersion || hostSettingsChanged()) {
+                // Old/unexpected server version, or Nextcloud's host settings changed; restart.
+                if ($oldVersion)
+                    error_log("Old server found, restarting. Expected hash $expVer but found $actVer.");
+                else
+                    error_log("Nextcloud's host settings changed, restarting.");
+                restartCoolwsd();
 
                 print '{"status":"restarting"}';
             }
@@ -329,17 +349,27 @@ if ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
     $proxyURL = "http://";
 }
 
+// Discovery is asked for regularly, so a change of Nextcloud's host settings takes effect here too
+if ($local && startsWith($request, '/hosting/discovery') && hostSettingsChanged())
+{
+    error_log("Nextcloud's host settings changed, restarting.");
+    fclose($local);
+    $local = false;
+    restartCoolwsd();
+}
+
 // Start the appimage if necessary
 if (!$local)
 {
     $err = checkCoolwsdSetup();
     if (!empty($err))
         errorExit($err, 500);
-    else if (!isCoolwsdRunning() && !startCoolwsd())
-        errorExit("The built-in office server starts once Nextcloud has written its settings. Open any Nextcloud page, then try again.", 503);
 
     $logonce = true;
     while (true) {
+        // A restart may have given up while coolwsd was still stopping, so start it once it is gone
+        if (!isCoolwsdRunning() && !startCoolwsd())
+            errorExit("The built-in office server starts once Nextcloud has written its settings. Open any Nextcloud page, then try again.", 503);
         $local = @fsockopen("127.0.0.1", 9983, $errno, $errstr, 15);
         if ($errno === 111) {
             if($logonce) {
