@@ -47,29 +47,7 @@ $tmp_dir = ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : sys_get_temp_
 $lockfile = "$tmp_dir/coolwsd.lock";
 $pidfile = "$tmp_dir/coolwsd.pid";
 
-// The request host when it is a host name, or an IPv6 address in brackets, each with an optional
-// port. Returns "" for anything else.
-function requestHost()
-{
-    $hostWithPort = $_SERVER['HTTP_HOST'] ?? '';
-
-    $host = $hostWithPort;
-    $pos = strrpos($hostWithPort, ':');
-    if ($pos !== false)
-    {
-        $port = substr($hostWithPort, $pos + 1);
-        if ($port !== '' && strspn($port, '0123456789') === strlen($port))
-            $host = substr($hostWithPort, 0, $pos);
-    }
-
-    if (str_starts_with($host, '[') && str_ends_with($host, ']'))
-        $valid = filter_var(substr($host, 1, -1), FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) !== false;
-    else
-        // Underscores are allowed too, as container service names often have them
-        $valid = filter_var(str_replace('_', 'x', $host), FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME) !== false;
-
-    return $valid ? $hostWithPort : "";
-}
+require_once __DIR__ . '/lib/HostFile.php';
 
 function getCoolwsdPid()
 {
@@ -103,28 +81,23 @@ function startCoolwsd()
     global $pidfile;
     global $lockfile;
 
-    $host = requestHost();
+    $settingsText = \OCA\RichDocumentsCODE\HostFile::readText(\OCA\RichDocumentsCODE\HostFile::path());
+    $settings = $settingsText === "" ? null : json_decode($settingsText, true);
 
     // Options for coolwsd, one argument each
     $options = [];
 
-    // Remote font config URL (HTTPS only)
-    if ($host !== "" && isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-    {
-        // SCRIPT_NAME is the path the web server resolved to this script, so it gives the app's own location.
-        $remoteFontConfigUrl = "https://" . $host . preg_replace("/richdocumentscode.*$/", "richdocuments/settings/fonts.json", $_SERVER['SCRIPT_NAME']);
-        $options[] = "--o:remote_font_config.url=" . $remoteFontConfigUrl;
-    }
+    if ($settings !== null && $settings['fontConfigUrl'] !== "")
+        $options[] = "--o:remote_font_config.url=" . $settings['fontConfigUrl'];
 
     // This proxy is the only client of coolwsd, and it connects to 127.0.0.1
     $options[] = "--o:net.proto=IPv4";
     $options[] = "--o:net.listen=loopback";
 
-    // net.lok_allow.host[14] is the next empty slot after the last element of the default list
-    // when lok_allow does not contain the Nextcloud host, it is not possible to insert image from Nextcloud
-    // we have to set explicitly, because storage.wopi.alias_groups[@mode] is 'first' in case of richdocumentscode
-    if ($host !== "")
-        $options[] = "--o:net.lok_allow.host[14]=" . $host;
+    // coolwsd reads only the indexes that are set, in order, so these follow the default list
+    // however long it grows
+    foreach ($settings['lokAllowHosts'] ?? [] as $i => $pattern)
+        $options[] = "--o:net.lok_allow.host[" . (1000 + $i) . "]=" . $pattern;
 
     $options[] = "--pidfile=" . $pidfile;
 
