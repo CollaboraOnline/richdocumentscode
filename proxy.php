@@ -75,6 +75,8 @@ function isCoolwsdRunning()
     return posix_kill($pid,0);
 }
 
+// Starts coolwsd unless it is already starting. Returns false, starting nothing, when Nextcloud has
+// not written the host settings yet.
 function startCoolwsd()
 {
     global $appImage;
@@ -82,12 +84,14 @@ function startCoolwsd()
     global $lockfile;
 
     $settingsText = \OCA\RichDocumentsCODE\HostFile::readText(\OCA\RichDocumentsCODE\HostFile::path());
-    $settings = $settingsText === "" ? null : json_decode($settingsText, true);
+    if ($settingsText === "")
+        return false;
+    $settings = json_decode($settingsText, true);
 
     // Options for coolwsd, one argument each
     $options = [];
 
-    if ($settings !== null && $settings['fontConfigUrl'] !== "")
+    if ($settings['fontConfigUrl'] !== "")
         $options[] = "--o:remote_font_config.url=" . $settings['fontConfigUrl'];
 
     // This proxy is the only client of coolwsd, and it connects to 127.0.0.1
@@ -96,19 +100,16 @@ function startCoolwsd()
 
     // coolwsd reads only the indexes that are set, in order, so these follow the default list
     // however long it grows
-    foreach ($settings['lokAllowHosts'] ?? [] as $i => $pattern)
+    foreach ($settings['lokAllowHosts'] as $i => $pattern)
         $options[] = "--o:net.lok_allow.host[" . (1000 + $i) . "]=" . $pattern;
 
     // Nextcloud is the only WOPI host. Its names are the aliases of one group, which coolwsd matches
     // as the regular expressions they are, and one of them is the group host.
-    if ($settings !== null)
-    {
-        $options[] = "--o:storage.wopi.alias_groups[@mode]=groups";
-        $options[] = "--o:storage.wopi.alias_groups.group[0].host=" . $settings['wopiGroupHost'];
-        $options[] = "--o:storage.wopi.alias_groups.group[0].host[@allow]=true";
-        foreach ($settings['wopiHosts'] as $i => $pattern)
-            $options[] = "--o:storage.wopi.alias_groups.group[0].alias[$i]=" . $pattern;
-    }
+    $options[] = "--o:storage.wopi.alias_groups[@mode]=groups";
+    $options[] = "--o:storage.wopi.alias_groups.group[0].host=" . $settings['wopiGroupHost'];
+    $options[] = "--o:storage.wopi.alias_groups.group[0].host[@allow]=true";
+    foreach ($settings['wopiHosts'] as $i => $pattern)
+        $options[] = "--o:storage.wopi.alias_groups.group[0].alias[$i]=" . $pattern;
 
     $options[] = "--pidfile=" . $pidfile;
 
@@ -145,6 +146,8 @@ function startCoolwsd()
 
     if (file_exists("$lockfile"))
         unlink("$lockfile");
+
+    return true;
 }
 
 function stopCoolwsd()
@@ -192,6 +195,9 @@ function checkCoolwsdSetup()
     exec('( /sbin/ldconfig -p || scanelf -l ) | grep fontconfig > /dev/null 2>&1', $output, $return);
     if ($return)
         return 'no_fontconfig';
+
+    if (!\OCA\RichDocumentsCODE\HostFile::isDirectoryUsable())
+        return 'settings_directory_not_owned';
 
     return '';
 }
@@ -329,8 +335,8 @@ if (!$local)
     $err = checkCoolwsdSetup();
     if (!empty($err))
         errorExit($err, 500);
-    else if (!isCoolwsdRunning())
-        startCoolwsd();
+    else if (!isCoolwsdRunning() && !startCoolwsd())
+        errorExit("The built-in office server starts once Nextcloud has written its settings. Open any Nextcloud page, then try again.", 503);
 
     $logonce = true;
     while (true) {

@@ -66,6 +66,13 @@ class HostFile
         return true;
     }
 
+    // Whether the directory is this user's, or not created yet
+    public static function isDirectoryUsable(): bool
+    {
+        $dir = self::directory();
+        return (!file_exists($dir) && !is_link($dir)) || self::isOwnedPlain($dir, true);
+    }
+
     public static function isValid($settings): bool
     {
         if (!is_array($settings) || !is_string($settings['fontConfigUrl'] ?? null))
