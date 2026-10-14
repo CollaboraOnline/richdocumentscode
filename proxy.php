@@ -99,6 +99,17 @@ function startCoolwsd()
     foreach ($settings['lokAllowHosts'] ?? [] as $i => $pattern)
         $options[] = "--o:net.lok_allow.host[" . (1000 + $i) . "]=" . $pattern;
 
+    // Nextcloud is the only WOPI host. Its names are the aliases of one group, which coolwsd matches
+    // as the regular expressions they are, and one of them is the group host.
+    if ($settings !== null)
+    {
+        $options[] = "--o:storage.wopi.alias_groups[@mode]=groups";
+        $options[] = "--o:storage.wopi.alias_groups.group[0].host=" . $settings['wopiGroupHost'];
+        $options[] = "--o:storage.wopi.alias_groups.group[0].host[@allow]=true";
+        foreach ($settings['wopiHosts'] as $i => $pattern)
+            $options[] = "--o:storage.wopi.alias_groups.group[0].alias[$i]=" . $pattern;
+    }
+
     $options[] = "--pidfile=" . $pidfile;
 
     // bash runs this fixed script with the AppImage as $0 and the options as "$@", so it never

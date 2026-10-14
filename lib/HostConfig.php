@@ -69,6 +69,12 @@ class HostConfig
         return implode($wildcard, $parts);
     }
 
+    private static function isLoopback(string $host): bool
+    {
+        return $host === 'localhost' || str_ends_with($host, '.localhost') || $host === '::1'
+            || preg_match('/^127\.[0-9.]+$/', $host);
+    }
+
     // The host of a trusted_domains or overwritehost entry, or "" with a warning when it has none
     private function usableHost(string $entry): string
     {
@@ -84,6 +90,16 @@ class HostConfig
         if (preg_match('/[a-z0-9]/', $host))
             return true;
         $this->warnings[] = "The trusted domain \"$host\" matches every host, so the built-in office server does not use it";
+        return false;
+    }
+
+    // coolwsd also accepts a WOPI host whose resolved address matches, so a pattern with no letter in
+    // it, such as 192.168.*, would trust any name that resolves into that range
+    private function isNotAddressRange(string $host): bool
+    {
+        if (!str_contains($host, '*') || preg_match('/[a-z]/', $host))
+            return true;
+        $this->warnings[] = "The trusted domain \"$host\" covers a range of addresses, so the built-in office server does not trust it as a WOPI host";
         return false;
     }
 
@@ -106,13 +122,43 @@ class HostConfig
         $entries[] = (string)$this->config->getSystemValue('overwritehost', '');
         $nextcloudHosts = array_values(array_unique(array_filter(array_filter(array_map($this->usableHost(...), $entries)), $this->isSpecific(...))));
 
+        // Nextcloud always answers on localhost, but the loopback is trusted as a WOPI host only
+        // when it is all there is, as on a test install
+        $namedHosts = array_values(array_filter($nextcloudHosts, $this->isNotAddressRange(...)));
+        $wopiHosts = array_values(array_filter($namedHosts, fn ($host) => !self::isLoopback($host)));
+        // Whether some entry was left out, by any of the rules above, and only the loopback is left
+        $leftOut = array_filter($entries, fn ($entry) => trim($entry) !== "" && !in_array(self::hostOf($entry), $namedHosts, true));
+        $onlyLoopbackLeft = $wopiHosts === [] && $leftOut !== [];
+        if ($wopiHosts === [])
+            $wopiHosts = $namedHosts ?: ['localhost'];
+
+        // With a callback URL every WOPISrc carries its host. Picture URLs still carry the host the
+        // user reached Nextcloud by.
+        $callbackHost = $this->urlHost($this->appConfig->getValueString('richdocuments', 'wopi_callback_url'));
+        if ($callbackHost !== "")
+        {
+            $wopiHosts = [$callbackHost];
+            $nextcloudHosts[] = $callbackHost;
+        }
+        else if ($onlyLoopbackLeft)
+            $this->warnings[] = "No trusted domain gives a single host the built-in office server can use, so it opens documents only through localhost. Add the name or address users reach Nextcloud by to trusted_domains.";
+
         // The font list is fetched by coolwsd itself, at the address Nextcloud reaches this app by
         $fontConfigUrl = "";
         if (parse_url($wopiUrl, PHP_URL_SCHEME) === 'https' && $this->urlHost($wopiUrl) !== "")
             $fontConfigUrl = preg_replace('/richdocumentscode[^\/]*\/proxy\.php.*$/', 'richdocuments/settings/fonts.json', $wopiUrl);
 
+        // The group host is a plain name, so a host made only of wildcards leaves a name that never
+        // resolves
+        $plainHosts = array_values(array_filter($wopiHosts, fn ($host) => !str_contains($host, '*')));
+        $groupHost = $plainHosts[0] ?? 'richdocumentscode.invalid';
+        if (str_contains($groupHost, ':'))
+            $groupHost = "[$groupHost]";
+
         return [
-            'lokAllowHosts' => array_map([self::class, 'pattern'], $nextcloudHosts),
+            'wopiHosts' => array_map([self::class, 'pattern'], $wopiHosts),
+            'wopiGroupHost' => $groupHost,
+            'lokAllowHosts' => array_map([self::class, 'pattern'], array_values(array_unique($nextcloudHosts))),
             'fontConfigUrl' => $fontConfigUrl,
         ];
     }

@@ -19,6 +19,9 @@ namespace OCA\RichDocumentsCODE;
 
 // The coolwsd settings that come from Nextcloud's configuration, kept as JSON in a directory of
 // the PHP temporary directory that only the web server user can read or write:
+//   wopiHosts      regular expressions for the hosts coolwsd accepts as a WOPI host
+//   wopiGroupHost  the name coolwsd treats as the canonical one of them: a host name, or an IPv6
+//                  address in brackets
 //   lokAllowHosts  regular expressions for the hosts documents may fetch data from
 //   fontConfigUrl  the URL of richdocuments' font list, or "" for none
 // It uses plain PHP only, so it works without Nextcloud loaded.
@@ -67,12 +70,16 @@ class HostFile
     {
         if (!is_array($settings) || !is_string($settings['fontConfigUrl'] ?? null))
             return false;
-        if (!is_array($settings['lokAllowHosts'] ?? null))
-            return false;
-        foreach ($settings['lokAllowHosts'] as $pattern)
-            if (!is_string($pattern) || !preg_match('/^[-a-zA-Z0-9.:_\\\\\[\]*]+$/', $pattern))
+        foreach (['wopiHosts', 'lokAllowHosts'] as $key)
+        {
+            if (!is_array($settings[$key] ?? null))
                 return false;
-        return true;
+            foreach ($settings[$key] as $pattern)
+                if (!is_string($pattern) || !preg_match('/^[-a-zA-Z0-9.:_\\\\\[\]*]+$/', $pattern))
+                    return false;
+        }
+        return $settings['wopiHosts'] !== []
+            && preg_match('/^([-a-zA-Z0-9._]+|\[[0-9a-fA-F:.]+\])$/', $settings['wopiGroupHost'] ?? '');
     }
 
     // The file's text, or "" when it is missing, not this user's, or does not hold valid settings
