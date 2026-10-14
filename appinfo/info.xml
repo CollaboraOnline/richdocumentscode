@@ -58,6 +58,14 @@ Additional troubleshooting tips can be found [here](https://github.com/Collabora
         <nextcloud min-version="30" max-version="35"/>
         <architecture>x86_64</architecture>
     </dependencies>
+    <repair-steps>
+        <install>
+            <step>OCA\RichDocumentsCODE\Migration\WriteHostConfig</step>
+        </install>
+        <post-migration>
+            <step>OCA\RichDocumentsCODE\Migration\WriteHostConfig</step>
+        </post-migration>
+    </repair-steps>
     <settings>
         <admin>OCA\RichDocumentsCODE\Settings\Admin</admin>
         <admin-section>OCA\RichDocumentsCODE\Settings\Section</admin-section>
