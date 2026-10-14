@@ -116,14 +116,9 @@ function startCoolwsd()
         $options[] = "--o:remote_font_config.url=" . $remoteFontConfigUrl;
     }
 
-    // Check if IPv6 has been disabled
-    debug_log("Testing disabled IPv6: ip -6 addr");
-    exec("ip -6 addr", $output, $return);
-    if (implode("",$output)=="")
-    {
-        debug_log("IPv6 disabled. Will launch coolwsd with IPv4-only option.");
-        $options[] = "--o:net.proto=IPv4";
-    }
+    // This proxy is the only client of coolwsd, and it connects to 127.0.0.1
+    $options[] = "--o:net.proto=IPv4";
+    $options[] = "--o:net.listen=loopback";
 
     // net.lok_allow.host[14] is the next empty slot after the last element of the default list
     // when lok_allow does not contain the Nextcloud host, it is not possible to insert image from Nextcloud
@@ -287,7 +282,7 @@ if (startsWith($request, '/hosting/capabilities') && !isCoolwsdRunning()) {
 
 // If we can't get a socket open in 3 seconds when that is backed by
 // a dedicated thread, then we have a server missing in action.
-$local = @fsockopen("localhost", 9983, $errno, $errstr, 3);
+$local = @fsockopen("127.0.0.1", 9983, $errno, $errstr, 3);
 
 // Return the status and exit if it is a ?status request
 if ($statusOnly) {
@@ -304,7 +299,7 @@ if ($statusOnly) {
     } else if ($errno === 111) {
         print '{"status":"starting"}';
     } else {
-        $response = file_get_contents("http://localhost:9983/hosting/capabilities", 0, stream_context_create(["http"=>["timeout"=>1]]));
+        $response = file_get_contents("http://127.0.0.1:9983/hosting/capabilities", 0, stream_context_create(["http"=>["timeout"=>1]]));
         if ($response) {
             // Version check.
             $obj = json_decode($response);
@@ -355,7 +350,7 @@ if (!$local)
 
     $logonce = true;
     while (true) {
-        $local = @fsockopen("localhost", 9983, $errno, $errstr, 15);
+        $local = @fsockopen("127.0.0.1", 9983, $errno, $errstr, 15);
         if ($errno === 111) {
             if($logonce) {
                debug_log("Can't yet connect to socket so sleep");
