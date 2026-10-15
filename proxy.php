@@ -90,8 +90,9 @@ function getCoolwsdPid()
 function isCoolwsdRunning()
 {
     $pid = getCoolwsdPid();
-    if ($pid === 0)
-        return 0;
+    // An empty pid file gives "", which posix_kill does not accept
+    if (!$pid)
+        return false;
 
     return posix_kill($pid,0);
 }
