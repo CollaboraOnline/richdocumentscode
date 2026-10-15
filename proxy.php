@@ -170,6 +170,9 @@ function startCoolwsd()
 function stopCoolwsd()
 {
     $pid = getCoolwsdPid();
+    // To posix_kill, a pid of 0 is this process's own group
+    if (!$pid)
+        return;
     if (posix_kill($pid,0))
     {
         debug_log("Stopping the coolwsd server with pid: $pid");
