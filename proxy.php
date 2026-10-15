@@ -46,6 +46,8 @@ $appImage = __DIR__ . '/collabora/Collabora_Online.AppImage';
 $tmp_dir = ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : sys_get_temp_dir();
 $lockfile = "$tmp_dir/coolwsd.lock";
 $pidfile = "$tmp_dir/coolwsd.pid";
+// The longest a start of coolwsd may take, in seconds, as on a small host unpacking the AppImage
+$startTimeout = 60 * 5;
 
 require_once __DIR__ . '/lib/HostFile.php';
 
@@ -82,6 +84,8 @@ function startCoolwsd()
     global $appImage;
     global $pidfile;
     global $lockfile;
+    global $startTimeout;
+    global $statusOnly;
 
     $settingsText = \OCA\RichDocumentsCODE\HostFile::readCurrent();
     if ($settingsText === "")
@@ -121,7 +125,7 @@ function startCoolwsd()
 
     // Remove stale lock file (just in case)
     if (file_exists("$lockfile"))
-        if (time() - filectime("$lockfile") > 60 * 5)
+        if (time() - filectime("$lockfile") > $startTimeout)
             unlink("$lockfile");
 
     // Prevent second start
@@ -143,8 +147,24 @@ function startCoolwsd()
         fclose($lock);
     }
 
+    $deadline = time() + $startTimeout;
     while (!isCoolwsdRunning())
+    {
+        if (time() > $deadline)
+        {
+            // The next request can then try again
+            if ($lock)
+                unlink("$lockfile");
+            // A status request is answered in JSON
+            if ($statusOnly)
+            {
+                print '{"status":"error","error":"start_timeout"}';
+                exit();
+            }
+            errorExit("The built-in office server did not start in time.", 503);
+        }
         sleep(1);
+    }
 
     if (file_exists("$lockfile"))
         unlink("$lockfile");
@@ -376,7 +396,8 @@ if (!$local)
         errorExit($err, 500);
 
     $logonce = true;
-    while (true) {
+    $deadline = time() + $startTimeout;
+    while (time() <= $deadline) {
         // A restart may have given up while coolwsd was still stopping, so start it once it is gone
         if (!isCoolwsdRunning() && !startCoolwsd())
             errorExit($notStartedMessage, 503);
