@@ -63,6 +63,7 @@ if [[ "$APPIMAGE_URL" =~ "arm64" ]]; then
     sed -i "s/occ app:install richdocumentscode/occ app:install richdocumentscode_arm64/" ${app_name}/appinfo/info.xml
     sed -i -e 's/<id>richdocumentscode/<id>richdocumentscode_arm64/g' -e 's/Built-in CODE Server/Built-in CODE Server (ARM64)/g' ${app_name}/appinfo/info.xml
     sed -i "s/richdocumentscode'/richdocumentscode_arm64'/g" ${app_name}/lib/Settings/Admin.php
+    sed -i "s/richdocumentscode'/richdocumentscode_arm64'/g" ${app_name}/lib/AppInfo/Application.php
     sed -i "s/richdocumentscode/richdocumentscode_arm64/g" ${app_name}/lib/Settings/Section.php
 
     for f in ${app_name}/l10n/*.js*; do

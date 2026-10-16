@@ -46,6 +46,7 @@ $appImage = __DIR__ . '/collabora/Collabora_Online.AppImage';
 $tmp_dir = ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : sys_get_temp_dir();
 $lockfile = "$tmp_dir/coolwsd.lock";
 $pidfile = "$tmp_dir/coolwsd.pid";
+$fontConfigUrlFile = "$tmp_dir/coolwsd-font-config-url";
 
 // The request host when it is a host name, or an IPv6 address in brackets, each with an optional
 // port. Returns "" for anything else.
@@ -96,6 +97,25 @@ function isCoolwsdRunning()
     return posix_kill($pid,0);
 }
 
+// The URL of the font config route that Nextcloud generated in lib/AppInfo/Application.php,
+// or an empty string when there is no usable one
+function nextcloudFontConfigUrl()
+{
+    global $fontConfigUrlFile;
+
+    // Only trust a file that the user running this script wrote
+    clearstatcache();
+    if (!is_file($fontConfigUrlFile) || fileowner($fontConfigUrlFile) !== posix_geteuid())
+        return "";
+
+    $url = trim(file_get_contents($fontConfigUrlFile));
+    if (!str_starts_with($url, "https://") || filter_var($url, FILTER_VALIDATE_URL) === false)
+        return "";
+
+    debug_log("Remote font config URL from Nextcloud: " . $url);
+    return $url;
+}
+
 function startCoolwsd()
 {
     global $appImage;
@@ -108,10 +128,15 @@ function startCoolwsd()
     $options = [];
 
     // Remote font config URL (HTTPS only)
-    if ($host !== "" && isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+    $remoteFontConfigUrl = nextcloudFontConfigUrl();
+    if ($remoteFontConfigUrl !== "")
+        $options[] = "--o:remote_font_config.url=" . $remoteFontConfigUrl;
+    else if ($host !== "" && isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
     {
-        // SCRIPT_NAME is the path the web server resolved to this script, so it gives the app's own location.
-        $remoteFontConfigUrl = "https://" . $host . preg_replace("/richdocumentscode.*$/", "richdocuments/settings/fonts.json", $_SERVER['SCRIPT_NAME']);
+        // SCRIPT_NAME is <webroot>/<apps dir>/richdocumentscode/proxy.php. fonts.json is a route of the
+        // richdocuments app, which can live in another apps dir, so address it through index.php.
+        $webRoot = preg_replace("#/[^/]+/richdocumentscode[^/]*/proxy\.php$#", "", $_SERVER['SCRIPT_NAME']);
+        $remoteFontConfigUrl = "https://" . $host . $webRoot . "/index.php/apps/richdocuments/settings/fonts.json";
         $options[] = "--o:remote_font_config.url=" . $remoteFontConfigUrl;
     }
 
