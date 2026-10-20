@@ -19,6 +19,7 @@ namespace OCA\RichDocumentsCODE;
 
 use OCP\IAppConfig;
 use OCP\IConfig;
+use OCP\IURLGenerator;
 use Psr\Log\LoggerInterface;
 
 // Works out the coolwsd settings in HostFile from Nextcloud's own configuration, which only an
@@ -32,6 +33,7 @@ class HostConfig
         private readonly IConfig $config,
         private readonly IAppConfig $appConfig,
         private readonly LoggerInterface $logger,
+        private readonly IURLGenerator $urlGenerator,
     ) {
     }
 
@@ -143,10 +145,25 @@ class HostConfig
         else if ($onlyLoopbackLeft)
             $this->warnings[] = "No trusted domain gives a single host the built-in office server can use, so it opens documents only through localhost. Add the name or address users reach Nextcloud by to trusted_domains.";
 
-        // The font list is fetched by coolwsd itself, at the address Nextcloud reaches this app by
+        // The font list is fetched by coolwsd itself, at the address Nextcloud reaches this app by.
+        // The URL generator knows the web root only in a web request, so the next page view adds the
+        // URL to a file written from occ.
         $fontConfigUrl = "";
-        if (parse_url($wopiUrl, PHP_URL_SCHEME) === 'https' && $this->urlHost($wopiUrl) !== "")
-            $fontConfigUrl = preg_replace('/richdocumentscode[^\/]*\/proxy\.php.*$/', 'richdocuments/settings/fonts.json', $wopiUrl);
+        if (PHP_SAPI !== 'cli' && parse_url($wopiUrl, PHP_URL_SCHEME) === 'https' && $this->urlHost($wopiUrl) !== "")
+        {
+            // richdocuments may be in another apps directory, so the path is that of its route
+            try
+            {
+                $route = $this->urlGenerator->linkToRoute('richdocuments.settings.getJsonFontList');
+            }
+            catch (\Throwable $e)
+            {
+                $route = "";
+            }
+            $port = parse_url($wopiUrl, PHP_URL_PORT);
+            if ($route !== "")
+                $fontConfigUrl = "https://" . parse_url($wopiUrl, PHP_URL_HOST) . ($port ? ":$port" : "") . $route;
+        }
 
         // The group host is a plain name, so a host made only of wildcards leaves a name that never
         // resolves
