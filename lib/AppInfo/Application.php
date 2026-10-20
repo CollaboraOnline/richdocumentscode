@@ -18,6 +18,8 @@
 namespace OCA\RichDocumentsCODE\AppInfo;
 
 use OCA\RichDocumentsCODE\Listener\HostConfigListener;
+use OCP\App\Events\AppDisableEvent;
+use OCP\App\Events\AppEnableEvent;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
@@ -38,6 +40,8 @@ class Application extends App implements IBootstrap
     {
         $context->registerEventListener(BeforeTemplateRenderedEvent::class, HostConfigListener::class);
         $context->registerEventListener(BeforeLoginTemplateRenderedEvent::class, HostConfigListener::class);
+        $context->registerEventListener(AppEnableEvent::class, HostConfigListener::class);
+        $context->registerEventListener(AppDisableEvent::class, HostConfigListener::class);
     }
 
     public function boot(IBootContext $context): void

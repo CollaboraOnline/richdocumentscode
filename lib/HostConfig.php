@@ -160,7 +160,18 @@ class HostConfig
             'wopiGroupHost' => $groupHost,
             'lokAllowHosts' => array_map([self::class, 'pattern'], array_values(array_unique($nextcloudHosts))),
             'fontConfigUrl' => $fontConfigUrl,
+            'enabledPath' => $this->enabledPath(),
         ];
+    }
+
+    // The data directory is the same for occ and the web server, while the PHP temporary directory
+    // can differ between them
+    private function enabledPath(): string
+    {
+        $dataDir = $this->config->getSystemValueString('datadirectory', \OC::$SERVERROOT . '/data');
+        $instanceId = $this->config->getSystemValueString('instanceid');
+        $appId = basename(dirname(__DIR__));
+        return "$dataDir/appdata_$instanceId/$appId/enabled";
     }
 
     public function update(): void
@@ -170,7 +181,17 @@ class HostConfig
         if ($settings === null)
             HostFile::remove();
         else
+        {
+            $enabledPath = $settings['enabledPath'];
+            if (!file_exists($enabledPath))
+            {
+                @mkdir(dirname($enabledPath), 0770, true);
+                @touch($enabledPath);
+                if (!is_file($enabledPath))
+                    $this->logger->error("Cannot create $enabledPath, so the built-in office server stays stopped");
+            }
             HostFile::write($settings);
+        }
         $this->logNewWarnings();
     }
 
@@ -185,5 +206,10 @@ class HostConfig
         foreach ($this->warnings as $warning)
             $this->logger->warning($warning);
         $this->appConfig->setValueString($appId, 'logged_warnings', $text);
+    }
+
+    public function disable(): void
+    {
+        @unlink($this->enabledPath());
     }
 }

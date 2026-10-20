@@ -24,6 +24,7 @@ namespace OCA\RichDocumentsCODE;
 //                  address in brackets
 //   lokAllowHosts  regular expressions for the hosts documents may fetch data from
 //   fontConfigUrl  the URL of richdocuments' font list, or "" for none
+//   enabledPath    a file in the app's data directory that exists while the app is enabled
 // It uses plain PHP only, so it works without Nextcloud loaded.
 class HostFile
 {
@@ -92,6 +93,7 @@ class HostFile
                     return false;
         }
         return $settings['wopiHosts'] !== []
+            && is_string($settings['enabledPath'] ?? null) && str_starts_with($settings['enabledPath'], '/')
             && preg_match('/^([-a-zA-Z0-9._]+|\[[0-9a-fA-F:.]+\])$/', $settings['wopiGroupHost'] ?? '');
     }
 
@@ -104,6 +106,27 @@ class HostFile
         if ($text === false || !self::isValid(json_decode($text, true)))
             return "";
         return $text;
+    }
+
+    // Only the web server user can write to the data directory, so any regular file there will do
+    private static function isEnabled(string $text): bool
+    {
+        $stat = @lstat(json_decode($text, true)['enabledPath']);
+        return $stat !== false && ($stat['mode'] & 0170000) === 0100000;
+    }
+
+    // The settings coolwsd runs with now, or "" when there are none or the app is disabled
+    public static function readCurrent(): string
+    {
+        $text = self::readText(self::path());
+        return $text !== "" && self::isEnabled($text) ? $text : "";
+    }
+
+    // Whether the app was disabled, judged by the current settings or else those coolwsd started with
+    public static function isDisabled(): bool
+    {
+        $text = self::readText(self::path()) ?: self::readText(self::startedPath());
+        return $text !== "" && !self::isEnabled($text);
     }
 
     // The file is replaced in one rename, so a reader sees either the old settings or the new ones

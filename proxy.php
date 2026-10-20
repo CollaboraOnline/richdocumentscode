@@ -83,7 +83,7 @@ function startCoolwsd()
     global $pidfile;
     global $lockfile;
 
-    $settingsText = \OCA\RichDocumentsCODE\HostFile::readText(\OCA\RichDocumentsCODE\HostFile::path());
+    $settingsText = \OCA\RichDocumentsCODE\HostFile::readCurrent();
     if ($settingsText === "")
         return false;
     $settings = json_decode($settingsText, true);
@@ -155,7 +155,7 @@ function startCoolwsd()
 // Whether Nextcloud's host settings differ from those coolwsd was started with
 function hostSettingsChanged()
 {
-    $current = \OCA\RichDocumentsCODE\HostFile::readText(\OCA\RichDocumentsCODE\HostFile::path());
+    $current = \OCA\RichDocumentsCODE\HostFile::readCurrent();
     $started = \OCA\RichDocumentsCODE\HostFile::readText(\OCA\RichDocumentsCODE\HostFile::startedPath());
     return $current !== $started;
 }
@@ -349,6 +349,16 @@ if ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
     $proxyURL = "http://";
 }
 
+$notStartedMessage = "The built-in office server starts once its app is enabled and Nextcloud has written its settings. Open any Nextcloud page, then try again.";
+
+// A disabled app stops coolwsd on its next request
+if ($local && \OCA\RichDocumentsCODE\HostFile::isDisabled())
+{
+    fclose($local);
+    stopCoolwsd();
+    errorExit($notStartedMessage, 503);
+}
+
 // Discovery is asked for regularly, so a change of Nextcloud's host settings takes effect here too
 if ($local && startsWith($request, '/hosting/discovery') && hostSettingsChanged())
 {
@@ -369,7 +379,7 @@ if (!$local)
     while (true) {
         // A restart may have given up while coolwsd was still stopping, so start it once it is gone
         if (!isCoolwsdRunning() && !startCoolwsd())
-            errorExit("The built-in office server starts once Nextcloud has written its settings. Open any Nextcloud page, then try again.", 503);
+            errorExit($notStartedMessage, 503);
         $local = @fsockopen("127.0.0.1", 9983, $errno, $errstr, 15);
         if ($errno === 111) {
             if($logonce) {

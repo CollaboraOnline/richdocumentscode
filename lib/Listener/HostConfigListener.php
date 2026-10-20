@@ -18,6 +18,7 @@
 namespace OCA\RichDocumentsCODE\Listener;
 
 use OCA\RichDocumentsCODE\HostConfig;
+use OCP\App\Events\AppDisableEvent;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 
@@ -35,6 +36,12 @@ class HostConfigListener implements IEventListener
 
     public function handle(Event $event): void
     {
+        if ($event instanceof AppDisableEvent)
+        {
+            if ($event->getAppId() === basename(dirname(__DIR__, 2)))
+                $this->hostConfig->disable();
+            return;
+        }
         $this->hostConfig->update();
     }
 }
