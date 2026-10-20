@@ -466,10 +466,24 @@ if ($body === '' && isMultipartRequest($headers)) {
     debug_log("Reconstructed body: $body");
 }
 
+// coolwsd sees every request come from this proxy, so the address of our own client goes at the
+// end of X-Forwarded-For, as a reverse proxy adds it. A request from this machine's own address is
+// from a local process, such as Nextcloud itself, and counts as loopback.
+$clientAddress = $_SERVER['REMOTE_ADDR'];
+if ($clientAddress === ($_SERVER['SERVER_ADDR'] ?? ''))
+    $clientAddress = '127.0.0.1';
+$forwardedFor = [];
+
 fwrite($local, $realRequest . "\r\n");
 // Send the headers on ...
 foreach ($headers as $header => $value) {
     debug_log("$header: $value\n");
+    if (strcasecmp($header, 'X-Forwarded-For') === 0)
+    {
+        if (trim($value) !== '')
+            $forwardedFor[] = $value;
+        continue;
+    }
     // Header names are case-insensitive, and arrive in lower case over HTTP/2.
     if ($multiBody !== '' && strcasecmp($header, 'Content-Length') === 0)
     {
@@ -479,6 +493,8 @@ foreach ($headers as $header => $value) {
 
     fwrite($local, "$header: $value\r\n");
 }
+$forwardedFor[] = $clientAddress;
+fwrite($local, "X-Forwarded-For: " . implode(', ', $forwardedFor) . "\r\n");
 fwrite($local, "ProxyPrefix: " . $proxyURL . "\r\n");
 fwrite($local, "\r\n");
 fwrite($local, $body);
