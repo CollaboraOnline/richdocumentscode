@@ -58,7 +58,7 @@ function getCoolwsdPid()
     clearstatcache();
     if (file_exists($pidfile))
     {
-        $pid = rtrim(file_get_contents($pidfile));
+        $pid = (int)file_get_contents($pidfile);
         debug_log("Coolwsd server running with pid: " . $pid);
         return $pid;
     }
@@ -67,14 +67,17 @@ function getCoolwsdPid()
     return 0;
 }
 
+// Whether the pid is a live process of this user that the kernel knows as coolwsd
+function isCoolwsdPid($pid)
+{
+    if (!$pid || !posix_kill($pid, 0))
+        return false;
+    return rtrim(@file_get_contents("/proc/$pid/comm")) === 'coolwsd';
+}
+
 function isCoolwsdRunning()
 {
-    $pid = getCoolwsdPid();
-    // An empty pid file gives "", which posix_kill does not accept
-    if (!$pid)
-        return false;
-
-    return posix_kill($pid,0);
+    return isCoolwsdPid(getCoolwsdPid());
 }
 
 // Starts coolwsd unless it is already starting. Returns false, starting nothing, when Nextcloud has
@@ -196,10 +199,7 @@ function restartCoolwsd()
 function stopCoolwsd()
 {
     $pid = getCoolwsdPid();
-    // To posix_kill, a pid of 0 is this process's own group
-    if (!$pid)
-        return;
-    if (posix_kill($pid,0))
+    if (isCoolwsdPid($pid))
     {
         debug_log("Stopping the coolwsd server with pid: $pid");
         posix_kill($pid, 15 /*SIGTERM*/);
