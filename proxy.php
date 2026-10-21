@@ -43,24 +43,32 @@ set_time_limit(0);
 // Where the appimage is installed
 $appImage = __DIR__ . '/collabora/Collabora_Online.AppImage';
 
+require_once __DIR__ . '/lib/HostFile.php';
+
+// The lock and pid files are in the settings directory, which only this user can write to
+$lockfile = \OCA\RichDocumentsCODE\HostFile::directory() . '/coolwsd.lock';
+$pidfile = \OCA\RichDocumentsCODE\HostFile::directory() . '/coolwsd.pid';
+// The pid file of a coolwsd started by an earlier release, which kept it in the temporary
+// directory itself
 $tmp_dir = ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : sys_get_temp_dir();
-$lockfile = "$tmp_dir/coolwsd.lock";
-$pidfile = "$tmp_dir/coolwsd.pid";
+$oldPidfile = "$tmp_dir/coolwsd.pid";
 // The longest a start of coolwsd may take, in seconds, as on a small host unpacking the AppImage
 $startTimeout = 60 * 5;
-
-require_once __DIR__ . '/lib/HostFile.php';
 
 function getCoolwsdPid()
 {
     global $pidfile;
+    global $oldPidfile;
 
     clearstatcache();
-    if (file_exists($pidfile))
+    foreach ([$pidfile, $oldPidfile] as $path)
     {
-        $pid = (int)file_get_contents($pidfile);
-        debug_log("Coolwsd server running with pid: " . $pid);
-        return $pid;
+        if (file_exists($path))
+        {
+            $pid = (int)file_get_contents($path);
+            debug_log("Coolwsd server running with pid: " . $pid);
+            return $pid;
+        }
     }
 
     debug_log("Coolwsd server is not running.");
@@ -86,6 +94,7 @@ function startCoolwsd()
 {
     global $appImage;
     global $pidfile;
+    global $oldPidfile;
     global $lockfile;
     global $startTimeout;
     global $statusOnly;
@@ -138,6 +147,8 @@ function startCoolwsd()
         // We start a new server, we don't need stale pidfile around
         if (file_exists("$pidfile"))
             unlink("$pidfile");
+        if (file_exists("$oldPidfile"))
+            @unlink("$oldPidfile");
 
         \OCA\RichDocumentsCODE\HostFile::writeText(\OCA\RichDocumentsCODE\HostFile::startedPath(), $settingsText);
 
