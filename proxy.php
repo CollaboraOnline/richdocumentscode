@@ -114,10 +114,15 @@ function startCoolwsd()
     $options[] = "--o:net.proto=IPv4";
     $options[] = "--o:net.listen=loopback";
 
-    // coolwsd reads only the indexes that are set, in order, so these follow the default list
-    // however long it grows
-    foreach ($settings['lokAllowHosts'] as $i => $pattern)
-        $options[] = "--o:net.lok_allow.host[" . (1000 + $i) . "]=" . $pattern;
+    // Documents may fetch data from Nextcloud and from nowhere else. The bundled coolwsd.xml has
+    // its own list, so each index it may use is given a Nextcloud name instead; the first entry is
+    // keyed without an index. coolwsd treats an empty list as no limit, so every slot is filled.
+    $lokAllowHosts = $settings['lokAllowHosts'] ?: $settings['wopiHosts'];
+    $options[] = "--o:net.lok_allow.host=" . $lokAllowHosts[0];
+    for ($i = 1; $i < 16; $i++)
+        $options[] = "--o:net.lok_allow.host[$i]=" . $lokAllowHosts[$i % count($lokAllowHosts)];
+    // The addresses allowed to call convert-to are not data sources
+    $options[] = "--o:net.post_allow[@allow]=false";
 
     // Nextcloud is the only WOPI host. Its names are the aliases of one group, which coolwsd matches
     // as the regular expressions they are, and one of them is the group host.
