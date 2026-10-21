@@ -336,12 +336,12 @@ if ($statusOnly) {
         $err = checkCoolwsdSetup();
         if (!empty($err))
             print '{"status":"error","error":"' . $err . '"}';
-        else if (!isCoolwsdRunning()) {
-            startCoolwsd();
+        else {
+            // The pid file can already name a coolwsd that is not listening yet
+            if (!isCoolwsdRunning())
+                startCoolwsd();
             print '{"status":"starting"}';
         }
-    } else if ($errno === 111) {
-        print '{"status":"starting"}';
     } else {
         $response = file_get_contents("http://127.0.0.1:9983/hosting/capabilities", 0, stream_context_create(["http"=>["timeout"=>1]]));
         if ($response) {
