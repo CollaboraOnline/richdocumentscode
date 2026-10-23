@@ -22,6 +22,7 @@ trusted.
 - rdc-start starts Apache. Nextcloud answers on http://localhost/ with the users admin
   (admin-password) and alice (alice-password).
 - The app is at /var/www/html/custom_apps/richdocumentscode. rdc-install copies /src there again.
+- nextcloud-reset puts Nextcloud and the app back as they were after the build.
 - proxy.php?status starts the bundled server, which takes a minute or two the first time.
 
 ## How we rate severity
