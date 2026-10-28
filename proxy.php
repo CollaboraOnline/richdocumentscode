@@ -136,8 +136,9 @@ function startCoolwsd()
 
     // bash runs this fixed script with the AppImage as $0 and the options as "$@", so it never
     // parses the values themselves. A second attempt with --appimage-extract-and-run follows when
-    // the AppImage fails, as it does without FUSE.
-    $script = '( "$0" "$@" || "$0" --appimage-extract-and-run "$@" ) >/dev/null & disown';
+    // the AppImage fails, as it does without FUSE. The script opens /dev/null itself, as PHP may only
+    // open the files open_basedir allows.
+    $script = '( "$0" "$@" || "$0" --appimage-extract-and-run "$@" ) </dev/null >/dev/null & disown';
     $launchCmd = array_merge(['bash', '-c', $script, $appImage], $options);
 
     // Remove stale lock file (just in case)
@@ -158,12 +159,30 @@ function startCoolwsd()
         \OCA\RichDocumentsCODE\HostFile::writeText(\OCA\RichDocumentsCODE\HostFile::startedPath(), $settingsText);
 
         debug_log("Launch the coolwsd server: " . implode(' ', $launchCmd));
-        $devNull = [0 => ['file', '/dev/null', 'r'], 1 => ['file', '/dev/null', 'w']];
-        $process = proc_open($launchCmd, $devNull, $pipes);
-        if ($process === false || proc_close($process) !== 0)
-            debug_log("Failed to launch server at $appImage.");
+        $process = proc_open($launchCmd, [0 => ['pipe', 'r'], 1 => ['pipe', 'w']], $pipes);
+        $launched = $process !== false;
+        if ($launched)
+        {
+            foreach ($pipes as $pipe)
+                fclose($pipe);
+            $launched = proc_close($process) === 0;
+        }
 
         fclose($lock);
+
+        if (!$launched)
+        {
+            // The next request can then try again
+            unlink("$lockfile");
+            // A status request is answered in JSON
+            if ($statusOnly)
+            {
+                error_log("richdocumentscode (proxy.php) failed to launch $appImage");
+                print '{"status":"error","error":"launch_failed"}';
+                exit();
+            }
+            errorExit("The built-in office server could not be launched.", 500);
+        }
     }
 
     $deadline = time() + $startTimeout;
