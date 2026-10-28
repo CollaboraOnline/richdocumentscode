@@ -75,12 +75,14 @@ function getCoolwsdPid()
     return 0;
 }
 
-// Whether the pid is a live process of this user that the kernel knows as coolwsd
+// Whether the pid is a live process of this user that the kernel knows as coolwsd. Any live pid
+// counts when /proc cannot be read, as under an open_basedir that does not include it.
 function isCoolwsdPid($pid)
 {
     if (!$pid || !posix_kill($pid, 0))
         return false;
-    return rtrim(@file_get_contents("/proc/$pid/comm")) === 'coolwsd';
+    $comm = @file_get_contents("/proc/$pid/comm");
+    return $comm === false || rtrim($comm) === 'coolwsd';
 }
 
 function isCoolwsdRunning()
