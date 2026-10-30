@@ -44,50 +44,27 @@ set_time_limit(0);
 $appImage = __DIR__ . '/collabora/Collabora_Online.AppImage';
 
 require_once __DIR__ . '/lib/HostFile.php';
+require_once __DIR__ . '/lib/Coolwsd.php';
 
-// The lock and pid files are in the settings directory, which only this user can write to
+// The lock file is in the settings directory, which only this user can write to
 $lockfile = \OCA\RichDocumentsCODE\HostFile::directory() . '/coolwsd.lock';
-$pidfile = \OCA\RichDocumentsCODE\HostFile::directory() . '/coolwsd.pid';
-// The pid file of a coolwsd started by an earlier release, which kept it in the temporary
-// directory itself
-$tmp_dir = ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : sys_get_temp_dir();
-$oldPidfile = "$tmp_dir/coolwsd.pid";
 // The longest a start of coolwsd may take, in seconds, as on a small host unpacking the AppImage
 $startTimeout = 60 * 5;
 
-function getCoolwsdPid()
-{
-    global $pidfile;
-    global $oldPidfile;
-
-    clearstatcache();
-    foreach ([$pidfile, $oldPidfile] as $path)
-    {
-        if (file_exists($path))
-        {
-            $pid = (int)file_get_contents($path);
-            debug_log("Coolwsd server running with pid: " . $pid);
-            return $pid;
-        }
-    }
-
-    debug_log("Coolwsd server is not running.");
-    return 0;
-}
-
-// Whether the pid is a live process of this user that the kernel knows as coolwsd. Any live pid
-// counts when /proc cannot be read, as under an open_basedir that does not include it.
-function isCoolwsdPid($pid)
-{
-    if (!$pid || !posix_kill($pid, 0))
-        return false;
-    $comm = @file_get_contents("/proc/$pid/comm");
-    return $comm === false || rtrim($comm) === 'coolwsd';
-}
-
+// Whether a coolwsd of this user runs, known by its pid file or else by its name in /proc
 function isCoolwsdRunning()
 {
-    return isCoolwsdPid(getCoolwsdPid());
+    return \OCA\RichDocumentsCODE\Coolwsd::isRunning();
+}
+
+// Whether something accepts connections on coolwsd's port
+function isCoolwsdListening()
+{
+    $socket = @fsockopen("127.0.0.1", 9983, $errno, $errstr, 1);
+    if (!$socket)
+        return false;
+    fclose($socket);
+    return true;
 }
 
 // Starts coolwsd unless it is already starting. Returns false, starting nothing, when Nextcloud has
@@ -95,8 +72,6 @@ function isCoolwsdRunning()
 function startCoolwsd()
 {
     global $appImage;
-    global $pidfile;
-    global $oldPidfile;
     global $lockfile;
     global $startTimeout;
     global $statusOnly;
@@ -134,7 +109,7 @@ function startCoolwsd()
     foreach ($settings['wopiHosts'] as $i => $pattern)
         $options[] = "--o:storage.wopi.alias_groups.group[0].alias[$i]=" . $pattern;
 
-    $options[] = "--pidfile=" . $pidfile;
+    $options[] = "--pidfile=" . \OCA\RichDocumentsCODE\Coolwsd::pidPath();
 
     // bash runs this fixed script with the AppImage as $0 and the options as "$@", so it never
     // parses the values themselves. A second attempt with --appimage-extract-and-run follows when
@@ -153,10 +128,7 @@ function startCoolwsd()
     if ($lock)
     {
         // We start a new server, we don't need stale pidfile around
-        if (file_exists("$pidfile"))
-            unlink("$pidfile");
-        if (file_exists("$oldPidfile"))
-            @unlink("$oldPidfile");
+        \OCA\RichDocumentsCODE\Coolwsd::removePidFiles();
 
         \OCA\RichDocumentsCODE\HostFile::writeText(\OCA\RichDocumentsCODE\HostFile::startedPath(), $settingsText);
 
@@ -187,8 +159,10 @@ function startCoolwsd()
         }
     }
 
+    // The new coolwsd writes the pid file once it runs. The process itself would show up in /proc
+    // at once, and a coolwsd that dies while starting would then be launched again and again.
     $deadline = time() + $startTimeout;
-    while (!isCoolwsdRunning())
+    while (!\OCA\RichDocumentsCODE\Coolwsd::pidFileIsLive())
     {
         if (time() > $deadline)
         {
@@ -220,7 +194,9 @@ function hostSettingsChanged()
     return $current !== $started;
 }
 
-// Stops coolwsd, and starts it again unless another request already has
+// Stops coolwsd, and starts it again unless another request already has. Returns false when a
+// coolwsd this proxy cannot find keeps the port, as when its pid file is gone and /proc cannot be
+// read: a new coolwsd would only fail to bind the port, and the old one has to be stopped by hand.
 function restartCoolwsd()
 {
     stopCoolwsd();
@@ -230,17 +206,21 @@ function restartCoolwsd()
 
     // somebody else might have restarted it in the meantime
     if (!isCoolwsdRunning())
+    {
+        if (isCoolwsdListening())
+        {
+            error_log("richdocumentscode (proxy.php) a coolwsd of another release or user keeps port 9983, and no pid file or /proc entry names it. Stop it by hand.");
+            return false;
+        }
         startCoolwsd();
+    }
+    return true;
 }
 
 function stopCoolwsd()
 {
-    $pid = getCoolwsdPid();
-    if (isCoolwsdPid($pid))
-    {
-        debug_log("Stopping the coolwsd server with pid: $pid");
-        posix_kill($pid, 15 /*SIGTERM*/);
-    }
+    debug_log("Stopping the coolwsd server");
+    \OCA\RichDocumentsCODE\Coolwsd::stop();
 }
 
 // Check that the setup is suitable for running the coolwsd.
@@ -382,9 +362,10 @@ if ($statusOnly) {
                     error_log("Old server found, restarting. Expected hash $expVer but found $actVer.");
                 else
                     error_log("Nextcloud's host settings changed, restarting.");
-                restartCoolwsd();
-
-                print '{"status":"restarting"}';
+                if (restartCoolwsd())
+                    print '{"status":"restarting"}';
+                else
+                    print '{"status":"error","error":"stop_failed"}';
             }
             else
                 print '{"status":"OK"}';
@@ -422,7 +403,9 @@ if ($local && startsWith($request, '/hosting/discovery') && hostSettingsChanged(
     error_log("Nextcloud's host settings changed, restarting.");
     fclose($local);
     $local = false;
-    restartCoolwsd();
+    if (!restartCoolwsd())
+        // The old coolwsd keeps serving until it is stopped by hand
+        $local = @fsockopen("127.0.0.1", 9983, $errno, $errstr, 3);
 }
 
 // Start the appimage if necessary
