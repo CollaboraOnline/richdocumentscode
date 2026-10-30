@@ -252,14 +252,31 @@ function checkCoolwsdSetup()
     if ($return)
         return 'no_glibc';
 
-    exec('( /sbin/ldconfig -p || scanelf -l ) | grep fontconfig > /dev/null 2>&1', $output, $return);
-    if ($return)
+    if (!hasFontconfig())
         return 'no_fontconfig';
 
     if (!\OCA\RichDocumentsCODE\HostFile::isDirectoryUsable())
         return 'settings_directory_not_owned';
 
     return '';
+}
+
+// Whether libfontconfig.so.1, which the AppImage loads from the system, is installed. ldconfig
+// lists the libraries it knows, but a shared host or a chroot may have no ld.so.cache, or no
+// ldconfig the web server user may run, so the usual library directories are searched as well.
+function hasFontconfig()
+{
+    exec('( /sbin/ldconfig -p || scanelf -l ) 2>/dev/null | grep libfontconfig.so.1 > /dev/null', $output, $return);
+    if ($return === 0)
+        return true;
+
+    foreach (['/lib', '/lib64', '/usr/lib', '/usr/lib64', '/usr/local/lib', '/usr/local/lib64'] as $dir)
+    {
+        // Debian and its derivatives keep the libraries in a per-architecture subdirectory
+        if (@file_exists("$dir/libfontconfig.so.1") || @glob("$dir/*-linux-gnu*/libfontconfig.so.1"))
+            return true;
+    }
+    return false;
 }
 
 function startsWith($string, $with) {
