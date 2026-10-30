@@ -225,8 +225,19 @@ class HostConfig
         $this->appConfig->setValueString($appId, 'logged_warnings', $text);
     }
 
+    // Stops coolwsd as well: a disabled app gets no proxy.php request to stop it from, and a
+    // removed app has no proxy.php left at all
     public function disable(): void
     {
         @unlink($this->enabledPath());
+        try
+        {
+            Coolwsd::stop();
+        }
+        catch (\Throwable $e)
+        {
+            // Such as posix_kill among the disabled functions, which the proxy reports in its turn
+            $this->logger->warning("Cannot stop the built-in office server: " . $e->getMessage());
+        }
     }
 }
