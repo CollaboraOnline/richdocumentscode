@@ -28,10 +28,15 @@ namespace OCA\RichDocumentsCODE;
 // It uses plain PHP only, so it works without Nextcloud loaded.
 class HostFile
 {
+    // PHP's temporary directory, which holds the settings directory and held the pid file once
+    public static function tmpDirectory(): string
+    {
+        return ini_get('upload_tmp_dir') ?: sys_get_temp_dir();
+    }
+
     public static function directory(): string
     {
-        $tmpDir = ini_get('upload_tmp_dir') ?: sys_get_temp_dir();
-        return "$tmpDir/richdocumentscode-" . posix_geteuid();
+        return self::tmpDirectory() . "/richdocumentscode-" . posix_geteuid();
     }
 
     public static function path(): string

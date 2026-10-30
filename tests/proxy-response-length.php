@@ -14,6 +14,7 @@ if (($argv[1] ?? '') === '--request') {
     $_SERVER['REQUEST_METHOD'] = 'GET';
     $_SERVER['SERVER_PROTOCOL'] = 'HTTP/1.1';
     $_SERVER['HTTP_HOST'] = 'localhost';
+    $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
     $_SERVER['SCRIPT_NAME'] = '/proxy.php';
     require dirname(__DIR__) . '/proxy.php';
     exit(0);
