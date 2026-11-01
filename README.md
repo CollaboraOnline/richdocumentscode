@@ -67,6 +67,7 @@ Of course, alternatively you could increase memory usage and PHP time-outs by de
 ## Troubleshooting
 
 - Make sure you have enough disk space
+- Behind a reverse proxy that changes the protocol, the host or the path on the way, such as one that serves Nextcloud under a directory, set `overwriteprotocol`, `overwritehost` and `overwritewebroot` in Nextcloud's `config.php` as the [Nextcloud documentation](https://docs.nextcloud.com/server/latest/admin_manual/configuration_server/reverse_proxy_configuration.html) describes. The built-in server's URLs follow these settings.
 - Check the logs:
   - `nextcloud.log`
   - container logs (if applicable)

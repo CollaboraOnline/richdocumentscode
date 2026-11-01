@@ -19,13 +19,21 @@ namespace OCA\RichDocumentsCODE;
 
 // The coolwsd settings that come from Nextcloud's configuration, kept as JSON in a directory of
 // the PHP temporary directory that only the web server user can read or write:
-//   wopiHosts      regular expressions for the hosts coolwsd accepts as a WOPI host
-//   wopiGroupHost  the name coolwsd treats as the canonical one of them: a host name, or an IPv6
-//                  address in brackets
-//   lokAllowHosts  regular expressions for the hosts documents may fetch data from
-//   fontConfigUrl  the URL of richdocuments' font list, or "" for none
-//   enabledPath    a file in the app's data directory that exists while the app is enabled
-// It uses plain PHP only, so it works without Nextcloud loaded.
+//   wopiHosts          regular expressions for the hosts coolwsd accepts as a WOPI host
+//   wopiGroupHost      the name coolwsd treats as the canonical one of them: a host name, or an
+//                      IPv6 address in brackets
+//   lokAllowHosts      regular expressions for the hosts documents may fetch data from
+//   fontConfigUrl      the URL of richdocuments' font list, or "" for none
+//   enabledPath        a file in the app's data directory that exists while the app is enabled
+//   overwriteProtocol  "http" or "https", Nextcloud's overwriteprotocol setting, or "" when unset
+//   overwriteHost      the host, with its port when it has one, the overwritehost setting, or ""
+//                      when unset
+//   overwriteCondAddr  a regular expression the client address has to match for the overwrite
+//                      settings to apply, the overwritecondaddr setting, or "" when unset
+//   proxyPath          the URL path of proxy.php under the overwritewebroot setting, or "" when
+//                      that is unset
+// The overwrite settings are for a reverse proxy that changes the protocol, host or path on the
+// way. The class uses plain PHP only, so it works without Nextcloud loaded.
 class HostFile
 {
     // PHP's temporary directory, which holds the settings directory and held the pid file once
@@ -97,9 +105,17 @@ class HostFile
                 if (!is_string($pattern) || !preg_match('/^[-a-zA-Z0-9.:_\\\\\[\]*]+$/', $pattern))
                     return false;
         }
+        // The overwrite settings go into a header, so they are printable ASCII without spaces, and
+        // \z rather than $ leaves no room for a final newline
+        foreach (['overwriteProtocol', 'overwriteHost', 'overwriteCondAddr', 'proxyPath'] as $key)
+            if (!is_string($settings[$key] ?? ""))
+                return false;
         return $settings['wopiHosts'] !== []
             && is_string($settings['enabledPath'] ?? null) && str_starts_with($settings['enabledPath'], '/')
-            && preg_match('/^([-a-zA-Z0-9._]+|\[[0-9a-fA-F:.]+\])$/', $settings['wopiGroupHost'] ?? '');
+            && preg_match('/^([-a-zA-Z0-9._]+|\[[0-9a-fA-F:.]+\])$/', $settings['wopiGroupHost'] ?? '')
+            && in_array($settings['overwriteProtocol'] ?? "", ["", "http", "https"], true)
+            && preg_match('/^[!-~]*\z/', $settings['overwriteHost'] ?? "")
+            && preg_match('/^(\/[!-~]*)?\z/', $settings['proxyPath'] ?? "");
     }
 
     // The file's text, or "" when it is missing, not this user's, or does not hold valid settings

@@ -186,6 +186,33 @@ function startCoolwsd()
     return true;
 }
 
+// The URL of this script as the browser reaches it, with ?req= for the request, which coolwsd puts
+// in front of the URLs it hands out. A reverse proxy may change the protocol, host or path on the
+// way, and Nextcloud's overwrite settings say so; they apply here as they do in Nextcloud, to a
+// client address the overwritecondaddr setting matches, or to all when it is not set.
+function proxyPrefix()
+{
+    $https = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
+        || (isset($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on');
+    $protocol = $https ? 'https' : 'http';
+    $host = $_SERVER['HTTP_HOST'];
+    $path = $_SERVER['SCRIPT_NAME'];
+
+    // The settings richdocuments may just have dropped still serve the requests under way
+    $text = \OCA\RichDocumentsCODE\HostFile::readCurrent()
+        ?: \OCA\RichDocumentsCODE\HostFile::readText(\OCA\RichDocumentsCODE\HostFile::startedPath());
+    $settings = $text !== "" ? json_decode($text, true) : [];
+    $condition = $settings['overwriteCondAddr'] ?? "";
+    if ($condition === "" || @preg_match("/$condition/", $_SERVER['REMOTE_ADDR'] ?? "") === 1)
+    {
+        $protocol = ($settings['overwriteProtocol'] ?? "") ?: $protocol;
+        $host = ($settings['overwriteHost'] ?? "") ?: $host;
+        $path = ($settings['proxyPath'] ?? "") ?: $path;
+    }
+    return "$protocol://$host$path?req=";
+}
+
 // Whether Nextcloud's host settings differ from those coolwsd was started with
 function hostSettingsChanged()
 {
@@ -394,16 +421,6 @@ if ($statusOnly) {
 
     exit();
 }
-// URL into this server of the proxy script.
-if ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-	|| (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https' )
-	|| (isset($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on')
-) {
-    $proxyURL = "https://";
-} else {
-    $proxyURL = "http://";
-}
-
 $notStartedMessage = "The built-in office server starts once its app is enabled and Nextcloud has written its settings. Open any Nextcloud page, then try again.";
 
 // A disabled app stops coolwsd on its next request
@@ -459,7 +476,7 @@ if (!$local) {
 // Fetch our headers for later
 $headers = getallheaders();
 
-$proxyURL .= $_SERVER['HTTP_HOST'] . $_SERVER['SCRIPT_NAME'] . '?req=';
+$proxyURL = proxyPrefix();
 debug_log("ProxyPrefix: '$proxyURL'");
 
 $realRequest = $_SERVER['REQUEST_METHOD'] . " " . $request . " " . $_SERVER['SERVER_PROTOCOL'];
