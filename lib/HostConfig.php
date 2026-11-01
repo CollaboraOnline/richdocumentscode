@@ -178,7 +178,65 @@ class HostConfig
             'lokAllowHosts' => array_map([self::class, 'pattern'], array_values(array_unique($nextcloudHosts))),
             'fontConfigUrl' => $fontConfigUrl,
             'enabledPath' => $this->enabledPath(),
+            'overwriteProtocol' => $this->overwriteProtocol(),
+            'overwriteHost' => $this->overwriteHost(),
+            'overwriteCondAddr' => $this->config->getSystemValueString('overwritecondaddr'),
+            'proxyPath' => $this->proxyPath($appId),
         ];
+    }
+
+    // The overwriteprotocol setting, or "" with a warning when it is neither http nor https
+    private function overwriteProtocol(): string
+    {
+        $protocol = strtolower(trim($this->config->getSystemValueString('overwriteprotocol')));
+        if ($protocol !== "" && $protocol !== "http" && $protocol !== "https")
+        {
+            $this->warnings[] = "The overwriteprotocol setting \"$protocol\" is neither http nor https, so the built-in office server ignores it";
+            return "";
+        }
+        return $protocol;
+    }
+
+    // The overwritehost setting, or "" with a warning when it would not fit in a URL
+    private function overwriteHost(): string
+    {
+        $host = trim($this->config->getSystemValueString('overwritehost'));
+        if (!preg_match('/^[!-~]*\z/', $host))
+        {
+            $this->warnings[] = "The overwritehost setting \"$host\" is not a host name, so the built-in office server ignores it";
+            return "";
+        }
+        return $host;
+    }
+
+    // The URL path of proxy.php when the overwritewebroot setting replaces Nextcloud's web root, as
+    // when a reverse proxy serves Nextcloud under a directory it strips before passing a request on.
+    // The URL generator puts the web root first, and that is the overwritten one only in a request
+    // the overwritecondaddr setting matches, so the rest of the path is taken and the setting put in
+    // front of it here. A setting that would not fit in a URL is ignored with a warning.
+    private function proxyPath(string $appId): string
+    {
+        $webRoot = trim($this->config->getSystemValueString('overwritewebroot'));
+        if ($webRoot === "")
+            return "";
+        if (!preg_match('/^[!-~]*\z/', $webRoot))
+        {
+            $this->warnings[] = "The overwritewebroot setting \"$webRoot\" is not a URL path, so the built-in office server ignores it";
+            return "";
+        }
+        try
+        {
+            $appPath = $this->urlGenerator->linkTo($appId, '');
+        }
+        catch (\Throwable $e)
+        {
+            return "";
+        }
+        if (\OC::$WEBROOT !== '' && str_starts_with($appPath, \OC::$WEBROOT))
+            $appPath = substr($appPath, strlen(\OC::$WEBROOT));
+        if (!str_starts_with($appPath, '/'))
+            return "";
+        return '/' . trim($webRoot, '/') . $appPath . 'proxy.php';
     }
 
     // The data directory is the same for occ and the web server, while the PHP temporary directory
