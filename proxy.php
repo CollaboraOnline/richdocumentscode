@@ -479,7 +479,7 @@ $headers = getallheaders();
 $proxyURL = proxyPrefix();
 debug_log("ProxyPrefix: '$proxyURL'");
 
-$realRequest = $_SERVER['REQUEST_METHOD'] . " " . $request . " " . $_SERVER['SERVER_PROTOCOL'];
+$realRequest = $_SERVER['REQUEST_METHOD'] . " " . $request . " HTTP/1.1";
 debug_log("Onward request is: '$realRequest'");
 
 $body = file_get_contents('php://input');
@@ -528,28 +528,32 @@ if ($clientAddress === ($_SERVER['SERVER_ADDR'] ?? ''))
     $clientAddress = '127.0.0.1';
 $forwardedFor = [];
 
+// Header names are case-insensitive, and arrive in lower case over HTTP/2.
+$ownHeaders = ['connection', 'keep-alive', 'proxy-connection', 'proxy-authorization', 'te', 'trailer',
+    'transfer-encoding', 'upgrade', 'expect', 'content-length', 'x-forwarded-for', 'proxyprefix'];
+foreach ($headers as $header => $value)
+{
+    if (strcasecmp($header, 'Connection') === 0)
+        foreach (explode(',', $value) as $name)
+            $ownHeaders[] = strtolower(trim($name));
+    else if (strcasecmp($header, 'X-Forwarded-For') === 0 && trim($value) !== '')
+        $forwardedFor[] = $value;
+}
+$forwardedFor[] = $clientAddress;
+
 fwrite($local, $realRequest . "\r\n");
+fwrite($local, "Connection: close\r\n");
+fwrite($local, "X-Forwarded-For: " . implode(', ', $forwardedFor) . "\r\n");
+fwrite($local, "ProxyPrefix: " . $proxyURL . "\r\n");
+fwrite($local, "Content-Length: " . strlen($body) . "\r\n");
 // Send the headers on ...
 foreach ($headers as $header => $value) {
     debug_log("$header: $value\n");
-    if (strcasecmp($header, 'X-Forwarded-For') === 0)
-    {
-        if (trim($value) !== '')
-            $forwardedFor[] = $value;
+    if (in_array(strtolower($header), $ownHeaders))
         continue;
-    }
-    // Header names are case-insensitive, and arrive in lower case over HTTP/2.
-    if ($multiBody !== '' && strcasecmp($header, 'Content-Length') === 0)
-    {
-        debug_log("Substitute Content-Length of " . $value . " with " . strlen($body));
-        $value = strlen($body);
-    }
 
     fwrite($local, "$header: $value\r\n");
 }
-$forwardedFor[] = $clientAddress;
-fwrite($local, "X-Forwarded-For: " . implode(', ', $forwardedFor) . "\r\n");
-fwrite($local, "ProxyPrefix: " . $proxyURL . "\r\n");
 fwrite($local, "\r\n");
 fwrite($local, $body);
 
