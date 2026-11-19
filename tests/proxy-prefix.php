@@ -9,7 +9,7 @@
 
 if (($argv[1] ?? '') === '--request') {
     if (!function_exists('getallheaders')) {
-        function getallheaders() { return []; }
+        function getallheaders() { return json_decode(getenv('TEST_CLIENT_HEADERS') ?: '[]', true); }
     }
     $_SERVER['QUERY_STRING'] = 'req=/test';
     $_SERVER['REQUEST_METHOD'] = 'GET';
@@ -53,7 +53,8 @@ $overwrite = [
 $overwritten = 'https://cloud.example.com:8443/nc/apps/richdocumentscode/proxy.php?req=';
 $plain = 'http://localhost/proxy.php?req=';
 
-// name, settings file (null for none), HTTPS, client address, expected ProxyPrefix
+// name, settings file (null for none), HTTPS, client address, expected ProxyPrefix, and the
+// headers the client sent, which may be left out
 $cases = [
     ['no settings file', null, false, '127.0.0.1', $plain],
     ['settings of an earlier release', $settings, false, '127.0.0.1', $plain],
@@ -63,10 +64,13 @@ $cases = [
     ['overwrite settings for this client', $settings + ['overwriteCondAddr' => '^127\\.'] + $overwrite, false, '127.0.0.1', $overwritten],
     ['overwritten host only', $settings + ['overwriteHost' => 'cloud.example.com'], true, '127.0.0.1', 'https://cloud.example.com/proxy.php?req='],
     ['overwritten path only', $settings + ['proxyPath' => '/nc/apps/richdocumentscode/proxy.php'], false, '127.0.0.1', 'http://localhost/nc/apps/richdocumentscode/proxy.php?req='],
+    ['ProxyPrefix sent by the client', $settings, false, '127.0.0.1', $plain, ['ProxyPrefix' => 'http://other.example.com/proxy.php?req=']],
 ];
 $failures = 0;
 
-foreach ($cases as [$name, $fileSettings, $https, $address, $expected]) {
+foreach ($cases as $case) {
+    [$name, $fileSettings, $https, $address, $expected] = $case;
+    $clientHeaders = $case[5] ?? [];
     $settingsPath = $settingsDir . '/coolwsd-hosts.json';
     if ($fileSettings === null) {
         @unlink($settingsPath);
@@ -77,7 +81,8 @@ foreach ($cases as [$name, $fileSettings, $https, $address, $expected]) {
         0 => ['pipe', 'r'],
         1 => ['pipe', 'w'],
         2 => ['pipe', 'w'],
-    ], $pipes, null, ['TEST_HTTPS' => $https ? 'on' : 'off', 'TEST_REMOTE_ADDR' => $address]);
+    ], $pipes, null, ['TEST_HTTPS' => $https ? 'on' : 'off', 'TEST_REMOTE_ADDR' => $address,
+        'TEST_CLIENT_HEADERS' => json_encode($clientHeaders)]);
     if (!is_resource($process)) {
         throw new RuntimeException('Could not start proxy process');
     }
@@ -99,7 +104,8 @@ foreach ($cases as [$name, $fileSettings, $https, $address, $expected]) {
         }
         $request .= $part;
     }
-    $actual = preg_match('/^ProxyPrefix: (.*)\r$/m', $request, $match) ? $match[1] : '(no ProxyPrefix header)';
+    // Every ProxyPrefix header of the request, as CODE takes the first one it finds
+    $actual = preg_match_all('/^ProxyPrefix: (.*)\r$/m', $request, $match) ? implode(', ', $match[1]) : '(no ProxyPrefix header)';
     fwrite($connection, "HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n");
     fclose($connection);
     stream_set_timeout($pipes[1], 5);
