@@ -485,39 +485,96 @@ debug_log("Onward request is: '$realRequest'");
 $body = file_get_contents('php://input');
 debug_log("request content: '$body'");
 
-function isMultipartRequest($headers)
+function isMultipartRequest()
 {
-    $contentType = $headers['Content-Type'] ?? $headers['content-type'] ?? '';
-    return strpos(strtolower($contentType), 'multipart/form-data') !== false;
+    return stripos($_SERVER['CONTENT_TYPE'] ?? '', 'multipart/form-data') !== false;
 }
 
-// Oh dear - PHP's rfc1867 handling doesn't give any php://input to work with in this case.
-$multiBody = '';
-if ($body === '' && isMultipartRequest($headers)) {
-    debug_log("Oh dear - PHP's rfc1867 handling doesn't give any php://input to work with");
-	debug_log("Reconstructing multipart body - Files: " . count($_FILES) . ", Form fields: " . count($_POST));
+// A name or file name in a Content-Disposition header, quoted as browsers quote it
+function formDataQuote($text)
+{
+    return '"' . str_replace(["\r", "\n", '"'], ['%0D', '%0A', '%22'], $text) . '"';
+}
 
-    $type = isset($headers['Content-Type']) ? $headers['Content-Type'] : $headers['content-type'];
-    $boundary = trim(explode('boundary=', $type)[1]);
+// PHP reads a multipart/form-data body into $_POST and $_FILES itself and leaves php://input empty,
+// so the body for coolwsd is built again from them, with the boundary of the Content-Type header
+// that goes on to coolwsd. When a PHP setting made it drop the files, such as the content of a
+// paste, coolwsd would get the request without them and refuse it with an empty 400 response, so
+// the setting is named in the log here instead.
+function rebuildMultipartBody()
+{
+    debug_log("Rebuilding the multipart body from " . count($_POST) . " fields and " . count($_FILES) . " files");
+
+    // ini_get() gives the value as written, which may be a word like "off"
+    $fileUploads = filter_var(ini_get('file_uploads'), FILTER_VALIDATE_BOOLEAN);
+    if (empty($_POST) && empty($_FILES))
+    {
+        // A request without a body goes on as it came
+        if ((int)($_SERVER['CONTENT_LENGTH'] ?? 0) === 0)
+            return '';
+        if (!$fileUploads)
+            errorExit("PHP's file_uploads setting is off, so the files of an upload, such as the content of a paste, do not reach the built-in office server.", 500);
+        if ((int)ini_get('max_file_uploads') === 0)
+            errorExit("PHP's max_file_uploads setting is 0, so the files of an upload, such as the content of a paste, do not reach the built-in office server.", 500);
+    }
+    else if (!$fileUploads)
+        error_log("richdocumentscode (proxy.php) PHP's file_uploads setting is off, so only the fields of this upload reach the built-in office server, and none of its files.");
+
+    if (!preg_match('/(?:^|;)\s*boundary=(?:"([^"]+)"|([^;,\s]+))/i', $_SERVER['CONTENT_TYPE'], $match))
+        errorExit("The multipart/form-data request has no boundary.");
+    $boundary = $match[2] ?? $match[1];
+
+    $body = '';
     // Only the posted fields: $_REQUEST would add the query string parameters too.
-    foreach ($_POST as $key=>$value) {
-        $multiBody .= "--" . $boundary . "\r\n";
-        $multiBody .= "Content-Disposition: form-data; name=\"$key\"\r\n\r\n";
-        $multiBody .= "$value\r\n";
+    foreach ($_POST as $name => $value)
+    {
+        // PHP makes an array of the fields named like a[] or a[b]
+        if (is_array($value))
+            errorExit("The built-in office server takes no fields named like $name" . "[], as PHP keeps no record of their original names.");
+        $body .= "--$boundary\r\n";
+        $body .= "Content-Disposition: form-data; name=" . formDataQuote($name) . "\r\n\r\n";
+        $body .= "$value\r\n";
     }
-    foreach ($_FILES as $file) {
-        $multiBody .= "--" . $boundary . "\r\n";
-        $multiBody .= "Content-Disposition: form-data; name=\"file\"; filename=\"" . $file['name'] . "\"\r\n";
-        $multiBody .= "Content-Type: " . $file['type'] . "\r\n\r\n";
-        if ($file['tmp_name'] === '') {
-            errorExit("File " . $file['name'] . " is larger than maximum up-load file-size", 413);
+    foreach ($_FILES as $name => $file)
+    {
+        if (is_array($file['error']))
+            errorExit("The built-in office server takes no files named like $name" . "[], as PHP keeps no record of their original names.");
+        switch ($file['error'])
+        {
+            case UPLOAD_ERR_OK:
+                $content = @file_get_contents($file['tmp_name']);
+                if ($content === false)
+                    errorExit("PHP stored the uploaded file " . $file['name'] . " where the built-in office server cannot read it. Check the upload_tmp_dir and open_basedir settings.", 500);
+                break;
+            case UPLOAD_ERR_NO_FILE:
+                // An empty file input
+                $content = '';
+                break;
+            case UPLOAD_ERR_INI_SIZE:
+            case UPLOAD_ERR_FORM_SIZE:
+                errorExit("File " . $file['name'] . " is larger than maximum up-load file-size", 413);
+            case UPLOAD_ERR_PARTIAL:
+                errorExit("The upload of file " . $file['name'] . " ended before the whole file arrived.");
+            case UPLOAD_ERR_NO_TMP_DIR:
+            case UPLOAD_ERR_CANT_WRITE:
+                errorExit("PHP could not store the uploaded file " . $file['name'] . " (error " . $file['error'] . "). Check the upload_tmp_dir setting.", 500);
+            default:
+                errorExit("PHP could not store the uploaded file " . $file['name'] . " (error " . $file['error'] . "), as when a PHP extension stops an upload.", 500);
         }
-        $multiBody .= file_get_contents($file['tmp_name']) . "\r\n";
+        $body .= "--$boundary\r\n";
+        $body .= "Content-Disposition: form-data; name=" . formDataQuote($name) . "; filename=" . formDataQuote($file['name']) . "\r\n";
+        if ($file['type'] !== '')
+            $body .= "Content-Type: " . $file['type'] . "\r\n";
+        $body .= "\r\n$content\r\n";
     }
-    $multiBody .= "--" . $boundary . "--\r\n";
-    $body = $multiBody;
+    $body .= "--$boundary--\r\n";
+    return $body;
+}
 
-    debug_log("Reconstructed body: $body");
+if ($body === '' && isMultipartRequest())
+{
+    $body = rebuildMultipartBody();
+    debug_log("Rebuilt body: $body");
 }
 
 // coolwsd sees every request come from this proxy, so the address of our own client goes at the
