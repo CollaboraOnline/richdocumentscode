@@ -26,7 +26,10 @@ function debug_log($msg)
 
 function errorExit($msg, $code = 400)
 {
-    http_response_code($code);
+    // The headers already taken over from coolwsd go, and its status line goes with them, as a
+    // status code given to header() replaces it, which one given to http_response_code() does not
+    header_remove();
+    header('Content-Type: text/html; charset=UTF-8', true, $code);
     print "<html><body>\n";
     print "<h1>Socket proxy error</h1>\n";
     print "<p>Error: " . htmlspecialchars($msg) . "</p>\n";
@@ -310,6 +313,26 @@ function startsWith($string, $with) {
     return (substr($string, 0, strlen($with)) === $with);
 }
 
+// The request for the log: its method and path, where only the known words stay, as the other
+// path segments may be a document URL with its access token, a session id or a download id, and
+// the command of a compat tunnel request, which is in the query string, itself left out
+function requestForLog($request)
+{
+    $words = ['cool', 'ws', 'browser', 'dist', 'hosting', 'discovery', 'capabilities', 'clipboard',
+        'convert-to', 'download', 'media', 'contents', 'insertfile', 'open', 'write', 'wait', 'close'];
+    $segments = explode('/', strtok($request, '?'));
+    foreach ($segments as &$segment)
+    {
+        if ($segment !== '' && !in_array($segment, $words, true))
+            $segment = '...';
+    }
+    unset($segment);
+    $text = $_SERVER['REQUEST_METHOD'] . ' ' . implode('/', $segments);
+    if (preg_match('#[?&]compat=(?:/ws)?/[^/&]*/(open|write|wait|close)(?:[/&]|$)#', rawurldecode($request), $match))
+        $text .= " (compat $match[1])";
+    return $text;
+}
+
 // parse and emit headers using 'header' ...
 function parseLastHeader(&$chunk, &$contentLength)
 {
@@ -565,21 +588,34 @@ $contentWritten = 0;
 $parsingHeaders = true;
 do {
     $chunk = fread($local, 65536);
-    if($chunk === false) {
-        $error = error_get_last();
-        $errorMessage = $error ? implode(' ', $error) : 'No error';
-        echo "ERROR ! $errorMessage\n";
-        debug_log("error on chunk: $errorMessage");
-        break;
-    } elseif($chunk === '') {
+    // The end of the answer, or a read that failed, as one that timed out does with false
+    if ($chunk === false || $chunk === '') {
         debug_log("empty chunk last data");
-        if ($parsingHeaders)
-            errorExit("No content in reply from coolwsd. Is SSL enabled in error ?", 500);
+        $timedOut = stream_get_meta_data($local)['timed_out'];
+        $cutShort = $chunk === false || ($contentLength >= 0 && $contentWritten < $contentLength);
+        // While no byte of the answer has gone out, the client gets an error status instead
+        if ($parsingHeaders || ($cutShort && $contentWritten === 0))
+        {
+            if ($timedOut)
+                errorExit("The built-in office server did not answer " . requestForLog($request) . " in time.", 504);
+            errorExit("The built-in office server closed the connection without answering " . requestForLog($request) . ".", 502);
+        }
+        // Otherwise the client gets the answer cut short
+        if ($cutShort)
+            error_log("richdocumentscode (proxy.php) the answer of the built-in office server to " . requestForLog($request) . ($timedOut ? " stopped coming in time." : " ended early."));
         break;
     } elseif ($parsingHeaders) {
         $rest .= $chunk;
         debug_log("build headers to: $rest\n");
-        if (parseLastHeader($rest, $contentLength)) {
+        // The headers go out once all of them are in, so that an answer cut short among them still
+        // ends in an error status
+        if (strpos($rest, "\r\n\r\n") !== false) {
+            // The answer to a HEAD request and a 204 or 304 answer have no body, whatever their
+            // Content-Length says
+            $bodyless = $_SERVER['REQUEST_METHOD'] === 'HEAD' || preg_match('#^HTTP/\S+ (204|304)\b#', $rest);
+            parseLastHeader($rest, $contentLength);
+            if ($bodyless)
+                $contentLength = 0;
             $parsingHeaders = false;
 
             $extOut = fopen("php://output", "w") or errorExit("fundamental error opening PHP output", 500);
