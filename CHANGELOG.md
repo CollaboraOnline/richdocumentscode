@@ -1,3 +1,10 @@
+## 26.4.603 - 2026-11-22
+### Fix:
+- #367 start coolwsd after an app update without waiting five minutes
+### AppImage version:
+- Collabora Online Development Edition (CODE) tag [cp-26.04.6-2](https://github.com/CollaboraOnline/online.mirror/releases/tag/cp-26.04.6-2)
+- See also: [CODE 26.04 release notes](https://www.collaboraoffice.com/code-26-04-release-notes/)
+
 ## 26.4.602 - 2026-11-20
 ### AppImage version:
 - Collabora Online Development Edition (CODE) tag [cp-26.04.6-2](https://github.com/CollaboraOnline/online.mirror/releases/tag/cp-26.04.6-2)
