@@ -50,6 +50,10 @@ require_once __DIR__ . '/lib/Coolwsd.php';
 $lockfile = \OCA\RichDocumentsCODE\HostFile::directory() . '/coolwsd.lock';
 // The longest a start of coolwsd may take, in seconds, as on a small host unpacking the AppImage
 $startTimeout = 60 * 5;
+// A start that failed leaves this stamp, and the next one is tried only after $retryDelay seconds,
+// as each try may unpack the whole AppImage again
+$failedStamp = \OCA\RichDocumentsCODE\HostFile::directory() . '/coolwsd.failed';
+$retryDelay = 30;
 
 // Whether a coolwsd of this user runs, known by its pid file or else by its name in /proc
 function isCoolwsdRunning()
@@ -67,6 +71,42 @@ function isCoolwsdListening()
     return true;
 }
 
+// An app update from the app store unpacks the AppImage without its execute permission
+function makeAppImageExecutable()
+{
+    global $appImage;
+
+    @chmod($appImage, 0744);
+    clearstatcache(); // effect of chmod() won't be detected without this call
+}
+
+// Whether the process has ended. An orphan that its new parent has not collected yet, as when that
+// parent is a PHP process that runs as pid 1 of a container, is left as a zombie, which a signal
+// still reaches; /proc tells it apart where it can be read, and elsewhere the zombie counts as
+// running.
+function processEnded($pid)
+{
+    if (!posix_kill($pid, 0))
+        return true;
+    $stat = @file_get_contents("/proc/$pid/stat");
+    // The state follows the command name, which is in parentheses and may contain any character
+    return $stat !== false && substr($stat, strrpos($stat, ')') + 2, 1) === 'Z';
+}
+
+// Ends a request for which coolwsd could not be started; a status request is answered in JSON
+function startFailed($error, $message, $code)
+{
+    global $statusOnly;
+
+    if ($statusOnly)
+    {
+        error_log("richdocumentscode (proxy.php) $message");
+        print '{"status":"error","error":"' . $error . '"}';
+        exit();
+    }
+    errorExit($message, $code);
+}
+
 // Starts coolwsd unless it is already starting. Returns false, starting nothing, when Nextcloud has
 // not written the host settings yet.
 function startCoolwsd()
@@ -74,11 +114,17 @@ function startCoolwsd()
     global $appImage;
     global $lockfile;
     global $startTimeout;
-    global $statusOnly;
+    global $failedStamp;
+    global $retryDelay;
 
     $settingsText = \OCA\RichDocumentsCODE\HostFile::readCurrent();
     if ($settingsText === "")
         return false;
+
+    // A stamp from the future, as after the clock was set back, is ignored
+    $failedAge = time() - (int)@filemtime($failedStamp);
+    if (file_exists($failedStamp) && $failedAge >= 0 && $failedAge < $retryDelay)
+        startFailed('launch_failed', "The built-in office server failed to start less than $retryDelay seconds ago. The web server's error log has the reason.", 503);
     $settings = json_decode($settingsText, true);
 
     // Options for coolwsd, one argument each
@@ -114,17 +160,21 @@ function startCoolwsd()
     // bash runs this fixed script with the AppImage as $0 and the options as "$@", so it never
     // parses the values themselves. A second attempt with --appimage-extract-and-run follows when
     // the AppImage fails, as it does without FUSE. The script opens /dev/null itself, as PHP may only
-    // open the files open_basedir allows.
-    $script = '( "$0" "$@" || "$0" --appimage-extract-and-run "$@" ) </dev/null >/dev/null & disown';
+    // open the files open_basedir allows. It prints the pid of the subshell that runs the AppImage,
+    // which lives as long as the AppImage does.
+    $script = '( "$0" "$@" || "$0" --appimage-extract-and-run "$@" ) </dev/null >/dev/null & echo $!; disown';
     $launchCmd = array_merge(['bash', '-c', $script, $appImage], $options);
 
     // Remove stale lock file (just in case)
     if (file_exists("$lockfile"))
         if (time() - filectime("$lockfile") > $startTimeout)
-            unlink("$lockfile");
+            @unlink("$lockfile");
 
     // Prevent second start
     $lock = @fopen("$lockfile", "x");
+    // Another request is starting coolwsd, and gives up by removing its lock
+    $lockSeen = !$lock && file_exists("$lockfile");
+    $launcherPid = 0;
     if ($lock)
     {
         // We start a new server, we don't need stale pidfile around
@@ -132,11 +182,14 @@ function startCoolwsd()
 
         \OCA\RichDocumentsCODE\HostFile::writeText(\OCA\RichDocumentsCODE\HostFile::startedPath(), $settingsText);
 
+        makeAppImageExecutable();
+
         debug_log("Launch the coolwsd server: " . implode(' ', $launchCmd));
         $process = proc_open($launchCmd, [0 => ['pipe', 'r'], 1 => ['pipe', 'w']], $pipes);
         $launched = $process !== false;
         if ($launched)
         {
+            $launcherPid = (int)trim(stream_get_contents($pipes[1]));
             foreach ($pipes as $pipe)
                 fclose($pipe);
             $launched = proc_close($process) === 0;
@@ -146,16 +199,9 @@ function startCoolwsd()
 
         if (!$launched)
         {
-            // The next request can then try again
-            unlink("$lockfile");
-            // A status request is answered in JSON
-            if ($statusOnly)
-            {
-                error_log("richdocumentscode (proxy.php) failed to launch $appImage");
-                print '{"status":"error","error":"launch_failed"}';
-                exit();
-            }
-            errorExit("The built-in office server could not be launched.", 500);
+            touch($failedStamp);
+            @unlink("$lockfile");
+            startFailed('launch_failed', "The built-in office server could not be launched.", 500);
         }
     }
 
@@ -164,24 +210,32 @@ function startCoolwsd()
     $deadline = time() + $startTimeout;
     while (!\OCA\RichDocumentsCODE\Coolwsd::pidFileIsLive())
     {
+        // The AppImage ended without a coolwsd, as when it cannot be run at all, or the request that
+        // launched it gave up; the web server's error log has the reason
+        $launcherEnded = $lock ? $launcherPid > 0 && processEnded($launcherPid) : $lockSeen && !file_exists("$lockfile");
+        if ($launcherEnded && !\OCA\RichDocumentsCODE\Coolwsd::pidFileIsLive()
+            && \OCA\RichDocumentsCODE\Coolwsd::findPids() === [])
+        {
+            if ($lock)
+            {
+                touch($failedStamp);
+                @unlink("$lockfile");
+                error_log("richdocumentscode (proxy.php) $appImage ended before coolwsd started");
+            }
+            startFailed('launch_failed', "The built-in office server stopped while it was starting.", 500);
+        }
         if (time() > $deadline)
         {
             // The next request can then try again
             if ($lock)
-                unlink("$lockfile");
-            // A status request is answered in JSON
-            if ($statusOnly)
-            {
-                print '{"status":"error","error":"start_timeout"}';
-                exit();
-            }
-            errorExit("The built-in office server did not start in time.", 503);
+                @unlink("$lockfile");
+            startFailed('start_timeout', "The built-in office server did not start in time.", 503);
         }
         sleep(1);
     }
 
-    if (file_exists("$lockfile"))
-        unlink("$lockfile");
+    @unlink("$lockfile");
+    @unlink($failedStamp);
 
     return true;
 }
@@ -265,8 +319,7 @@ function checkCoolwsdSetup()
     if (!file_exists($appImage))
         return 'appimage_missing';
 
-    @chmod($appImage, 0744);
-    clearstatcache(); // effect of chmod() won't be detected without this call
+    makeAppImageExecutable();
 
     if (!is_executable($appImage))
         return 'appimage_not_executable';
