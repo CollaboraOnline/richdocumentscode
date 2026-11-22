@@ -182,7 +182,27 @@ class HostConfig
             'overwriteHost' => $this->overwriteHost(),
             'overwriteCondAddr' => $this->config->getSystemValueString('overwritecondaddr'),
             'proxyPath' => $this->proxyPath($appId),
+            'tmpDirectory' => $this->tmpDirectory($appId),
         ];
+    }
+
+    // The app's temp_directory setting: the directory the AppImage unpacks itself in, when it has
+    // to, and coolwsd keeps its files in, for a host whose /tmp does not allow running programs. It
+    // is "" for the default, and a setting that is not a writable directory is ignored with a
+    // warning.
+    private function tmpDirectory(string $appId): string
+    {
+        $directory = trim($this->appConfig->getValueString($appId, 'temp_directory'));
+        if ($directory === "")
+            return "";
+        $directory = rtrim($directory, '/') ?: '/';
+        // The u modifier rejects a path that is not UTF-8, as JSON could not hold it
+        if (!preg_match('/^\/[^\x00-\x1f\x7f]*\z/u', $directory) || !@is_dir($directory) || !@is_writable($directory))
+        {
+            $this->warnings[] = "The temp_directory setting \"$directory\" is not the absolute path of a directory the web server can write to, inside open_basedir when that is set, so the built-in office server ignores it";
+            return "";
+        }
+        return $directory;
     }
 
     // The overwriteprotocol setting, or "" with a warning when it is neither http nor https
