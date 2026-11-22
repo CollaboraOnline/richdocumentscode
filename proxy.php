@@ -157,13 +157,16 @@ function startCoolwsd()
 
     $options[] = "--pidfile=" . \OCA\RichDocumentsCODE\Coolwsd::pidPath();
 
-    // bash runs this fixed script with the AppImage as $0 and the options as "$@", so it never
-    // parses the values themselves. A second attempt with --appimage-extract-and-run follows when
-    // the AppImage fails, as it does without FUSE. The script opens /dev/null itself, as PHP may only
-    // open the files open_basedir allows. It prints the pid of the subshell that runs the AppImage,
-    // which lives as long as the AppImage does.
-    $script = '( "$0" "$@" || "$0" --appimage-extract-and-run "$@" ) </dev/null >/dev/null & echo $!; disown';
-    $launchCmd = array_merge(['bash', '-c', $script, $appImage], $options);
+    // bash runs this fixed script with the AppImage as $0, the temporary directory as $1 and the
+    // options after it, so it never parses the values themselves. The AppImage unpacks itself, when
+    // it has to, and coolwsd keeps its files in TMPDIR, which the script sets only when the app's
+    // temp_directory setting gives one, and the environment is inherited as it is otherwise. A
+    // second attempt with --appimage-extract-and-run follows when the AppImage fails, as it does
+    // without FUSE. The script opens /dev/null itself, as PHP may only open the files open_basedir
+    // allows. It prints the pid of the subshell that runs the AppImage, which lives as long as the
+    // AppImage does.
+    $script = 'if [ -n "$1" ]; then export TMPDIR="$1"; fi; shift; ( "$0" "$@" || "$0" --appimage-extract-and-run "$@" ) </dev/null >/dev/null & echo $!; disown';
+    $launchCmd = array_merge(['bash', '-c', $script, $appImage, $settings['tmpDirectory'] ?? ""], $options);
 
     // Remove stale lock file (just in case)
     if (file_exists("$lockfile"))

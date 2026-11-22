@@ -20,7 +20,7 @@ requirement on FUSE.
 
 Notes:
 
-- On slower systems, the first time the CODE Server is started there may be a noticeable delay (also applies on subsequent runs if `/tmp` whenever cleared)
+- On slower systems, the first time the CODE Server is started there may be a noticeable delay (also applies on subsequent runs if `/tmp`, or the [temporary directory](#temporary-directory) set for the app, whenever cleared)
 
 ## System requirements
 
@@ -28,7 +28,7 @@ Notes:
 - 2 CPU cores
 - 1 GB RAM + 100 MB RAM / user
 - 100 kbit/s network bandwidth / user
-- 300 MB space on disk (800 MB in `/tmp` if not using FUSE)
+- 300 MB space on disk (800 MB in `/tmp`, or in the [temporary directory](#temporary-directory) set for the app, if not using FUSE)
 - Nextcloud 19 with the [Nextcloud Office app](https://apps.nextcloud.com/apps/richdocuments) 3.7.0 or higher
 - A glibc based distribution/container ([AppImage does not support musl libc](https://github.com/AppImage/AppImageKit/issues/1015))
 - Fontconfig (libfontconfig.so.1 - required by Collabora_Online.AppImage)
@@ -39,6 +39,22 @@ Notes:
 - FUSE 2 (libfuse.so.2)
 
 **Note:** If FUSE support is not present, a warning (`dlopen(): error loading libfuse.so.2`) will be generated, but then the AppImage will be started with the `--appimage-extract-and-run` parameter automatically as a fallback.
+
+### Temporary directory
+
+The AppImage unpacks itself there when FUSE is not present, and the CODE Server keeps its files, including its log, in a new directory there: `/tmp` by default. Where `/tmp` does not allow running programs, as when it is mounted `noexec` on many shared hosts, or is too small, set another directory. It must exist, inside PHP's `open_basedir` when that is set, the web server user must be able to write to it, and programs must be allowed to run from it. A directory only the web server user can write to is best:
+
+```
+sudo -u wwwrun php ./occ config:app:set richdocumentscode temp_directory --value=/path/to/directory
+```
+
+Without a shell, an admin can set it through Nextcloud's provisioning API instead:
+
+```
+curl -u admin -X POST -H 'OCS-APIRequest: true' -d value=/path/to/directory https://cloud.example.com/ocs/v2.php/apps/provisioning_api/api/v1/config/apps/richdocumentscode/temp_directory
+```
+
+Use `richdocumentscode_arm64` for the ARM64 app. The CODE Server restarts in the new directory once a Nextcloud page has been opened and Nextcloud Office has checked the server again. A path that is not a directory the web server user can write to is ignored, with a warning in `nextcloud.log`. Delete the setting with `occ config:app:delete richdocumentscode temp_directory` to go back to `/tmp`. Unlike `/tmp`, nothing empties this directory on a reboot: a CODE Server that is killed or that stops with the machine leaves its `coolwsd.*` and `appimage_extracted_*` directories there, which can be removed while it is not running.
 
 ## Installation
 
@@ -71,7 +87,7 @@ Of course, alternatively you could increase memory usage and PHP time-outs by de
 - Check the logs:
   - `nextcloud.log`
   - container logs (if applicable)
-  - `/tmp/coolwsd.*/coolwsd.log` (on your host or in the container's `/tmp` if applicable)
+  - `/tmp/coolwsd.*/coolwsd.log` (on your host or in the container's `/tmp` if applicable), or `coolwsd.*/coolwsd.log` in the [temporary directory](#temporary-directory) set for the app
 
 ## Testing with a local Collabora Online build
 

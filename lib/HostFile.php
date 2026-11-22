@@ -32,6 +32,8 @@ namespace OCA\RichDocumentsCODE;
 //                      settings to apply, the overwritecondaddr setting, or "" when unset
 //   proxyPath          the URL path of proxy.php under the overwritewebroot setting, or "" when
 //                      that is unset
+//   tmpDirectory       the directory for the AppImage and coolwsd's files, the app's
+//                      temp_directory setting, or "" for the default
 // The overwrite settings are for a reverse proxy that changes the protocol, host or path on the
 // way. The class uses plain PHP only, so it works without Nextcloud loaded.
 class HostFile
@@ -115,7 +117,9 @@ class HostFile
             && preg_match('/^([-a-zA-Z0-9._]+|\[[0-9a-fA-F:.]+\])$/', $settings['wopiGroupHost'] ?? '')
             && in_array($settings['overwriteProtocol'] ?? "", ["", "http", "https"], true)
             && preg_match('/^[!-~]*\z/', $settings['overwriteHost'] ?? "")
-            && preg_match('/^(\/[!-~]*)?\z/', $settings['proxyPath'] ?? "");
+            && preg_match('/^(\/[!-~]*)?\z/', $settings['proxyPath'] ?? "")
+            && is_string($settings['tmpDirectory'] ?? "")
+            && preg_match('/^(\/[^\x00-\x1f\x7f]*)?\z/u', $settings['tmpDirectory'] ?? "");
     }
 
     // The file's text, or "" when it is missing, not this user's, or does not hold valid settings
@@ -164,8 +168,9 @@ class HostFile
 
     public static function write(array $settings): void
     {
-        if (self::isValid($settings))
-            self::writeText(self::path(), json_encode($settings, JSON_UNESCAPED_SLASHES));
+        $text = self::isValid($settings) ? json_encode($settings, JSON_UNESCAPED_SLASHES) : false;
+        if ($text !== false)
+            self::writeText(self::path(), $text);
     }
 
     public static function remove(): void

@@ -7,7 +7,8 @@
  * coolwsd of the user who runs it, as proxy.php stops those. Runs a copy of proxy.php whose AppImage is a script, and checks that a launch that
  * fails is reported at once and not tried again right away, and that the first request after an
  * app update, which unpacks the AppImage without its execute permission while the old coolwsd
- * still runs, gets an answer from the new coolwsd.
+ * still runs, gets an answer from the new coolwsd. The AppImage keeps the environment, with TMPDIR
+ * set to the temp_directory setting when there is one.
  */
 
 if (($argv[1] ?? '') === '--request') {
@@ -62,13 +63,19 @@ register_shutdown_function(function () use ($tmpDir, &$started) {
 copy(dirname(__DIR__) . '/proxy.php', "$appDir/proxy.php");
 exec('cp -r ' . escapeshellarg(dirname(__DIR__) . '/lib') . ' ' . escapeshellarg($appDir));
 touch("$tmpDir/enabled");
-file_put_contents("$settingsDir/coolwsd-hosts.json", json_encode([
-    'wopiHosts' => ['localhost'],
-    'wopiGroupHost' => 'localhost',
-    'lokAllowHosts' => [],
-    'fontConfigUrl' => '',
-    'enabledPath' => "$tmpDir/enabled",
-], JSON_UNESCAPED_SLASHES));
+function write_settings(string $tmpDirectory): void
+{
+    global $tmpDir, $settingsDir;
+    file_put_contents("$settingsDir/coolwsd-hosts.json", json_encode([
+        'wopiHosts' => ['localhost'],
+        'wopiGroupHost' => 'localhost',
+        'lokAllowHosts' => [],
+        'fontConfigUrl' => '',
+        'enabledPath' => "$tmpDir/enabled",
+        'tmpDirectory' => $tmpDirectory,
+    ], JSON_UNESCAPED_SLASHES));
+}
+write_settings('');
 
 // A coolwsd that listens on the port, writes the pid file it is given and answers every request
 // with its own pid
@@ -119,7 +126,7 @@ function request(string $query, array $collect = []): array
         0 => ['pipe', 'r'],
         1 => ['pipe', 'w'],
         2 => ['pipe', 'w'],
-    ], $pipes, null, getenv() + ['TEST_QUERY' => $query]);
+    ], $pipes, null, ['TEST_QUERY' => $query, 'TEST_MARKER' => 'kept', 'TMPDIR' => '/inherited'] + getenv());
     fclose($pipes[0]);
     $streams = [1 => '', 2 => ''];
     $open = [1 => $pipes[1], 2 => $pipes[2]];
@@ -156,7 +163,7 @@ $launchLog = "$tmpDir/launches";
 $lockFile = "$settingsDir/coolwsd.lock";
 
 // A launch that fails ends the request at once
-write_appimage("echo launch >> $launchLog\necho 'test AppImage cannot run' >&2\nexit 1", 0755);
+write_appimage("echo launch >> $launchLog\necho \"\$TMPDIR \$TEST_MARKER\" > $tmpDir/environment\necho 'test AppImage cannot run' >&2\nexit 1", 0755);
 [$output, $stderr, $seconds] = request('status');
 $launches = count(file($launchLog));
 $checks['failed launch: answered with launch_failed'] = $output === '{"status":"error","error":"launch_failed"}';
@@ -164,6 +171,7 @@ $checks['failed launch: answered within 10 seconds'] = $seconds < 10;
 $checks['failed launch: logged that the AppImage ended'] = strpos($stderr, 'ended before coolwsd started') !== false;
 $checks['failed launch: the AppImage error is in the log'] = strpos($stderr, 'test AppImage cannot run') !== false;
 $checks['failed launch: no start lock left behind'] = !file_exists($lockFile);
+$checks['failed launch: the AppImage kept the environment and its TMPDIR'] = trim((string)@file_get_contents("$tmpDir/environment")) === '/inherited kept';
 
 // and is not tried again right away
 [$output, $stderr, $seconds] = request('status');
@@ -180,7 +188,9 @@ for ($i = 0; $i < 50 && !@fsockopen('127.0.0.1', 9983); $i++) {
     usleep(100000);
 }
 @unlink("$settingsDir/coolwsd-hosts-started.json");
-write_appimage('exec "$(dirname "$0")/coolwsd" "$@"', 0644);
+mkdir("$tmpDir/office");
+write_settings("$tmpDir/office");
+write_appimage("echo \"\$TMPDIR \$TEST_MARKER\" > $tmpDir/environment\nexec \"\$(dirname \"\$0\")/coolwsd\" \"\$@\"", 0644);
 [$output, $stderr, $seconds] = request('req=/hosting/discovery', [$old]);
 $answer = json_decode($output, true);
 if (isset($answer['pid'])) {
@@ -189,6 +199,7 @@ if (isset($answer['pid'])) {
 $checks['after update: the old coolwsd was stopped'] = !proc_get_status($old)['running'];
 $checks['after update: answered by the new coolwsd'] = isset($answer['pid']) && $answer['pid'] !== $oldPid;
 $checks['after update: the AppImage was made executable'] = is_executable($appImage);
+$checks['after update: the AppImage got the temp_directory setting as TMPDIR'] = trim((string)@file_get_contents("$tmpDir/environment")) === "$tmpDir/office kept";
 proc_close($old);
 
 $failures = 0;
